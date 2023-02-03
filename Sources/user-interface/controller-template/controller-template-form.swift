@@ -1,15 +1,11 @@
+// controller-template-form.swift
 //
-//  File.swift
-//  
-//
-//  Created by Michael Ong on 2/3/23.
-//
+// Code Copyright Buslo Collective
+// Created 2/3/23
 
 import Foundation
 import UIKit
 
 public extension Templates {
-    final class Form: UIScrollView {
-        
-    }
+    final class Form: UIScrollView {}
 }

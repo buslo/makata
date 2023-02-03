@@ -1,9 +1,7 @@
+// protocol-formable.swift
 //
-//  File.swift
-//  
-//
-//  Created by Michael Ong on 2/3/23.
-//
+// Code Copyright Buslo Collective
+// Created 2/3/23
 
 import Foundation
 
@@ -64,9 +62,9 @@ public class FormHandler<Shape> {
     }
 }
 
-extension FormHandler {
+public extension FormHandler {
     @discardableResult
-    public func callAsFunction(_ callback: @escaping UpdatesHandler) -> Self {
+    func callAsFunction(_ callback: @escaping UpdatesHandler) -> Self {
         updateHandler = callback
 
         pushUpdates()
@@ -75,7 +73,7 @@ extension FormHandler {
     }
 
     @discardableResult
-    public func setValidationHandler(_ handler: FormValidation<Shape>?) -> Self {
+    func setValidationHandler(_ handler: FormValidation<Shape>?) -> Self {
         validations = handler
 
         pushUpdates()
@@ -84,8 +82,8 @@ extension FormHandler {
     }
 }
 
-extension FormHandler {
-    public subscript<Value>(dynamicMember member: WritableKeyPath<Shape, Value>) -> Value {
+public extension FormHandler {
+    subscript<Value>(dynamicMember member: WritableKeyPath<Shape, Value>) -> Value {
         get {
             current[keyPath: member]
         }

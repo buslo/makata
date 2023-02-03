@@ -23,7 +23,7 @@ open class Controller<Hook>: UIViewController, Hookable {
         fatalError()
     }
 
-    override public func viewDidLoad() {
+    override open func viewDidLoad() {
         super.viewDidLoad()
 
         if let loadable = client as? (any Loadable) {

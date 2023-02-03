@@ -1,14 +1,12 @@
+// view+uitextfield.swift
 //
-//  File.swift
-//  
-//
-//  Created by Michael Ong on 2/3/23.
-//
+// Code Copyright Buslo Collective
+// Created 2/3/23
 
 import Foundation
-import UIKit
 import makataForm
 import makataInteraction
+import UIKit
 
 public extension UITextField {
     func textChanges(_ action: Binding<some AnyObject, String>) -> Lifetimeable {
@@ -16,7 +14,7 @@ public extension UITextField {
 
         return TextChangesProxy(source: self, action: action.action)
     }
-    
+
     @discardableResult
     func textChanges(_ action: Binding<some AnyObject, String>, lifetime: inout Lifetimeable?) -> Self {
         lifetime = textChanges(action)

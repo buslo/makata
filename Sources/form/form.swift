@@ -1,8 +1,6 @@
+// form.swift
 //
-//  File.swift
-//  
-//
-//  Created by Michael Ong on 2/3/23.
-//
+// Code Copyright Buslo Collective
+// Created 2/3/23
 
 import Foundation
