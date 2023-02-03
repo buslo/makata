@@ -8,7 +8,7 @@ import Foundation
 public protocol Routeable: AnyObject {
     associatedtype Route
 
-    var routeHandler: RouteCallback<Route> { get set }
+    var routeHandler: RouteCallback<Route> { get }
 }
 
 public extension Routeable {

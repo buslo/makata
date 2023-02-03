@@ -8,7 +8,7 @@ import Foundation
 public protocol Stateable: AnyObject {
     associatedtype State
 
-    var stateHandler: StateHandler<State> { get set }
+    var stateHandler: StateHandler<State> { get }
 }
 
 public extension Stateable {
