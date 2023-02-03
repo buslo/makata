@@ -1,0 +1,5 @@
+--swiftversion 5.7
+--indent 4
+--maxwidth 120
+--wrapparameters before-first
+--header "{file}\n\nCode Copyright Buslo Collective\nCreated {created}"
