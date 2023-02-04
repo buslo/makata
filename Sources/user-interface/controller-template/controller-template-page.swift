@@ -8,13 +8,13 @@ import SnapKit
 import UIKit
 
 public extension Templates {
-    final class Page<Content: UIView>: UIView {
+    final class Page: UIView {
         public private(set) weak var headerView: (UIView & ViewHeader)!
-        public private(set) weak var contentView: Content!
+        public private(set) weak var contentView: UIView!
 
         public init(
             headerView: UIView & ViewHeader,
-            contentView: Content,
+            contentView: UIView,
             constraints: (ConstraintMaker) -> Void = { $0.edges.equalToSuperview() }
         ) {
             super.init(frame: .zero)
