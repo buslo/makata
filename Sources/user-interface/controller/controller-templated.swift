@@ -14,14 +14,14 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
             navigationController?.popViewController(animated: true)
         }
     }
-    
+
     open func loadTemplate() -> Template {
         fatalError()
     }
 
     override open func loadView() {
         view = screenTemplate
-        
+
         if let page = screenTemplate as? Templates.Page {
             page.headerView.setupHeaderAppearance(title: title ?? "", backAction: backAction)
         }
