@@ -9,7 +9,7 @@ public protocol Loadable: Stateable where State == LoadableDataState<LoadableDat
     associatedtype LoadableData
 
     func loadData() async throws -> LoadableData
- 
+
     func invalidate() async
 }
 

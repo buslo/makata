@@ -9,11 +9,21 @@ import UIKit
 open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
     public lazy var screenTemplate: Template = loadTemplate()
 
+    open var backAction: UIAction {
+        .init { [unowned self] _ in
+            navigationController?.popViewController(animated: true)
+        }
+    }
+    
     open func loadTemplate() -> Template {
         fatalError()
     }
 
     override open func loadView() {
         view = screenTemplate
+        
+        if let page = screenTemplate as? Templates.Page {
+            page.headerView.setupHeaderAppearance(title: title ?? "", backAction: backAction)
+        }
     }
 }
