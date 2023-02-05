@@ -13,24 +13,26 @@ public extension Templates {
         public private(set) weak var contentView: UIView!
 
         public init(
-            headerView: UIView & ViewHeader,
-            contentView: UIView,
-            constraints: (ConstraintMaker) -> Void = { $0.edges.equalToSuperview() }
+            header: UIView & ViewHeader,
+            content: UIView,
+            contentConstraints: (Page, ConstraintMaker) -> Void = { $1.edges.equalToSuperview() }
         ) {
             super.init(frame: .zero)
 
-            if contentView is UICollectionView {
+            if content is UICollectionView {
                 fatalError("Do not use this template. Use the Collection template instead.")
             }
 
-            addSubview(view: contentView, constraints: constraints)
+            addSubview(view: content) { make in
+                contentConstraints(self, make)
+            }
 
-            addSubview(view: headerView) { make in
+            addSubview(view: header) { make in
                 make.top.horizontalEdges.equalToSuperview()
             }
 
-            self.headerView = headerView
-            self.contentView = contentView
+            self.headerView = header
+            self.contentView = content
         }
 
         @available(*, unavailable)
