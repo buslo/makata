@@ -5,10 +5,16 @@
 
 import Foundation
 
-public struct FieldValidator<Value> {
-    public let validate: (Value) throws -> Void
+public struct FieldValidator<Shape, Value> {
+    public let validate: (Shape, Value) throws -> Void
 
-    public init(validate: @escaping (Value) throws -> Void) {
+    public init(validate: @escaping (Shape, Value) throws -> Void) {
         self.validate = validate
+    }
+    
+    public init(validate: @escaping (Value) throws -> Void) {
+        self.validate = { _, value throws in
+            try validate(value)
+        }
     }
 }

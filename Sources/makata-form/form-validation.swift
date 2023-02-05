@@ -24,7 +24,7 @@ public struct FormValidation<Shape> {
 
     public func validations<Value>(
         for path: KeyPath<Shape, Value>,
-        are fields: FieldValidator<Value>...
+        are fields: FieldValidator<Shape, Value>...
     ) -> Self {
         var newDict = validationsDict
         newDict[path] = { shape in
@@ -32,7 +32,7 @@ public struct FormValidation<Shape> {
 
             fields.forEach { field in
                 do {
-                    try field.validate(shape[keyPath: path])
+                    try field.validate(shape, shape[keyPath: path])
                 } catch {
                     fieldErrors.append(error)
                 }
@@ -46,7 +46,7 @@ public struct FormValidation<Shape> {
 
     public func validations<Value>(
         for path: KeyPath<Shape, Value?>,
-        are fields: FieldValidator<Value>...
+        are fields: FieldValidator<Shape, Value>...
     ) -> Self {
         var newDict = validationsDict
         newDict[path] = { shape in
@@ -55,7 +55,7 @@ public struct FormValidation<Shape> {
             fields.forEach { field in
                 do {
                     if let value = shape[keyPath: path] {
-                        try field.validate(value)
+                        try field.validate(shape, value)
                     } else {
                         fatalError("Tried to validate a field that does not exist or is nil.")
                     }
@@ -72,7 +72,7 @@ public struct FormValidation<Shape> {
 
     public func validations<Value>(
         for path: KeyPath<Shape, FieldPartialValue<Value, some Any>>,
-        are fields: FieldValidator<Value>...
+        are fields: FieldValidator<Shape, Value>...
     ) -> Self {
         var newDict = validationsDict
         newDict[path] = { shape in
@@ -82,7 +82,7 @@ public struct FormValidation<Shape> {
                 do {
                     switch shape[keyPath: path] {
                     case let .complete(complete):
-                        try field.validate(complete)
+                        try field.validate(shape, complete)
                     case let .partial(_, error):
                         throw FieldError.incomplete(error)
                     }
@@ -99,7 +99,7 @@ public struct FormValidation<Shape> {
 
     public func validations<Value>(
         for path: KeyPath<Shape, FieldPartialValue<Value, some Any>?>,
-        are fields: FieldValidator<Value>...
+        are fields: FieldValidator<Shape, Value>...
     ) -> Self {
         var newDict = validationsDict
         newDict[path] = { shape in
@@ -110,7 +110,7 @@ public struct FormValidation<Shape> {
                     if let value = shape[keyPath: path] {
                         switch value {
                         case let .complete(complete):
-                            try field.validate(complete)
+                            try field.validate(shape, complete)
                         case let .partial(_, error):
                             throw FieldError.incomplete(error)
                         }
