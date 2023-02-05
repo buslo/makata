@@ -12,6 +12,22 @@ public extension Templates {
         public private(set) weak var headerView: (UIView & ViewHeader)!
         public private(set) weak var contentView: UIView!
 
+        public lazy var contentViewLayoutGuide: UILayoutGuide = {
+            let layoutGuide = UILayoutGuide()
+            addLayoutGuide(layoutGuide)
+
+            layoutGuide.snp.makeConstraints { make in
+                make.top
+                    .equalTo(headerView.snp.bottom)
+
+                make.horizontalEdges
+                    .bottom
+                    .equalToSuperview()
+            }
+
+            return layoutGuide
+        }()
+
         public init(
             header: UIView & ViewHeader,
             content: UIView,
@@ -23,16 +39,19 @@ public extension Templates {
                 fatalError("Do not use this template. Use the Collection template instead.")
             }
 
-            addSubview(view: content) { make in
-                contentConstraints(self, make)
-            }
+            headerView = header
+            contentView = content
 
             addSubview(view: header) { make in
                 make.top.horizontalEdges.equalToSuperview()
             }
 
-            self.headerView = header
-            self.contentView = content
+            addSubview(view: content) { make in
+                contentConstraints(self, make)
+            }
+
+            header.layer.zPosition = 100
+            content.layer.zPosition = 1
         }
 
         @available(*, unavailable)
