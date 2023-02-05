@@ -11,6 +11,10 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
 
     open override var title: String? {
         didSet {
+            guard isViewLoaded else {
+                return
+            }
+            
             if let page = screenTemplate as? Templates.Page {
                 page.headerView.setupHeaderAppearance(title: title ?? "", backAction: backAction)
             }
