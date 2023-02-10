@@ -14,7 +14,7 @@ public protocol CollectionDelegate: AnyObject {
 
 public extension Templates {
     final class Collection<S: Hashable, E: Hashable>: UIView {
-        public typealias SectionLayout = (DataSource, Int, S) -> NSCollectionLayoutSection
+        public typealias SectionLayout = (__shared DataSource, Int, S) -> NSCollectionLayoutSection
 
         public class DataSource: UICollectionViewDiffableDataSource<S, E> {}
 
@@ -25,9 +25,9 @@ public extension Templates {
         let delegate = DelegateProxy<E>()
 
         public init(
-            header: UIView? = nil,
-            footer: UIView? = nil,
-            source: (UICollectionView) -> DataSource,
+            header: __owned UIView? = nil,
+            footer: __owned UIView? = nil,
+            source: (__shared UICollectionView) -> DataSource,
             layout: @escaping SectionLayout
         ) {
             let headerRegistration = Header.Registration
