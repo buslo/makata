@@ -123,7 +123,9 @@ public extension Templates {
             fatalError()
         }
 
-        public func setCollectionDelegate<D: CollectionDelegate>(_ target: D) where D.DelegateItemType == E {
+        public func setCollectionDelegate<D: CollectionDelegate>(
+            _ target: __shared D
+        ) where D.DelegateItemType == E {
             delegate.setupDelegate(delegate: target, dataSource: dataSource)
         }
 
@@ -133,7 +135,7 @@ public extension Templates {
             collectionView.collectionViewLayout.invalidateLayout()
         }
 
-        public func setRefresh(action: @escaping @MainActor () async -> Void) {
+        public func setRefresh(action: __owned @escaping @MainActor () async -> Void) {
             #if !targetEnvironment(macCatalyst)
                 let refreshControl = UIRefreshControl(frame: .zero)
                 refreshControl.layer.zPosition = 10000

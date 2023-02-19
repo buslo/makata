@@ -29,8 +29,8 @@ public extension Templates {
         }()
 
         public init(
-            header: UIView & ViewHeader,
-            content: UIView,
+            header: __owned UIView & ViewHeader,
+            content: __owned UIView,
             contentConstraints: (Page, ConstraintMaker) -> Void = { $1.edges.equalToSuperview() }
         ) {
             super.init(frame: .zero)

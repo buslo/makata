@@ -61,7 +61,7 @@ public extension Observable {
         weak var observable: Observable<Value>!
 
         public func subscribe(
-            source: @autoclosure () -> String = "[\(#file)]@\(#line) > \(#filePath)",
+            source: @autoclosure () -> String = "[\(#file)]@\(#line): \(#filePath)",
             action: @escaping (Value) -> Void
         ) -> Lifetimeable {
             let newSubscription = Subscription(id: observable.subscriptions.count, source: source(), action: action)
@@ -73,7 +73,7 @@ public extension Observable {
         }
 
         public func bind(
-            source: @autoclosure () -> String = "[\(#file)]@\(#line) > \(#filePath)",
+            source: @autoclosure () -> String = "[\(#file)]@\(#line): \(#filePath)",
             to loadable: some Loadable
         ) -> Lifetimeable {
             subscribe(source: source()) { [weak loadable] _ in

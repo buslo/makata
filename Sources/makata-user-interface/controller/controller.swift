@@ -10,7 +10,7 @@ import UIKit
 open class Controller<Hook>: UIViewController, Hookable {
     public var client: Hook
 
-    public required init(hook: Hook) {
+    public required init(hook: __owned Hook) {
         client = hook
 
         super.init(nibName: nil, bundle: nil)
