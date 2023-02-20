@@ -13,23 +13,27 @@ public protocol CollectionDelegate: AnyObject {
 }
 
 public extension Templates {
-    final class Collection<S: Hashable, E: Hashable>: UIView {
+    final class Collection<S: Hashable, E: Hashable>: UIView, HasHeader {
         public typealias SectionLayout = (__shared DataSource, Int, S) -> NSCollectionLayoutSection
 
         public class DataSource: UICollectionViewDiffableDataSource<S, E> {}
 
         public let dataSource: DataSource
 
+        public private(set) weak var headerView: (UIView & ViewHeader)?
+
         public private(set) weak var collectionView: UICollectionView!
 
         let delegate = DelegateProxy<E>()
 
         public init(
-            header: __owned UIView? = nil,
+            header: __owned (UIView & ViewHeader)? = nil,
             footer: __owned UIView? = nil,
             source: (__shared UICollectionView) -> DataSource,
             layout: @escaping SectionLayout
         ) {
+            headerView = header
+            
             let headerRegistration = Header.Registration
             let footerRegistration = Footer.Registration
 

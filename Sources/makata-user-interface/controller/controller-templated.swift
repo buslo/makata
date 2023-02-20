@@ -15,8 +15,8 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
                 return
             }
             
-            if let page = screenTemplate as? Templates.Page {
-                page.headerView.setupHeaderAppearance(title: title ?? "", backAction: backAction)
+            if let page = screenTemplate as? HasHeader {
+                page.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
             }
         }
     }
@@ -34,8 +34,8 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
     override open func loadView() {
         view = screenTemplate
 
-        if let page = screenTemplate as? Templates.Page {
-            page.headerView.setupHeaderAppearance(title: title ?? "", backAction: backAction)
+        if let page = screenTemplate as? HasHeader {
+            page.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
         }
     }
 }

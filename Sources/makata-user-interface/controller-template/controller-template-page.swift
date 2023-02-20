@@ -8,8 +8,8 @@ import SnapKit
 import UIKit
 
 public extension Templates {
-    final class Page: UIView {
-        public private(set) weak var headerView: (UIView & ViewHeader)!
+    final class Page: UIView, HasHeader {
+        public private(set) weak var headerView: (UIView & ViewHeader)?
         public private(set) weak var contentView: UIView!
 
         public lazy var contentViewLayoutGuide: UILayoutGuide = {
@@ -18,7 +18,7 @@ public extension Templates {
 
             layoutGuide.snp.makeConstraints { make in
                 make.top
-                    .equalTo(headerView.snp.bottom)
+                    .equalTo(headerView!.snp.bottom)
 
                 make.horizontalEdges
                     .bottom
@@ -62,7 +62,7 @@ public extension Templates {
         override public func layoutSubviews() {
             super.layoutSubviews()
 
-            let size = headerView.systemLayoutSizeFitting(
+            let size = headerView!.systemLayoutSizeFitting(
                 .init(width: bounds.width, height: 100),
                 withHorizontalFittingPriority: .required,
                 verticalFittingPriority: .fittingSizeLevel
