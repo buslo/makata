@@ -42,12 +42,14 @@ public extension Templates {
             headerView = header
             contentView = content
 
-            addSubview(view: content) { make in
-                contentConstraints(self, make)
-            }
+            addSubview(content)
 
             addSubview(view: header) { make in
                 make.top.horizontalEdges.equalToSuperview()
+            }
+            
+            content.snp.makeConstraints { make in
+                contentConstraints(self, make)
             }
         }
 
