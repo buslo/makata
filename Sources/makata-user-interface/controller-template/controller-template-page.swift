@@ -42,16 +42,13 @@ public extension Templates {
             headerView = header
             contentView = content
 
-            addSubview(view: header) { make in
-                make.top.horizontalEdges.equalToSuperview()
-            }
-
             addSubview(view: content) { make in
                 contentConstraints(self, make)
             }
 
-            header.layer.zPosition = 100
-            content.layer.zPosition = 1
+            addSubview(view: header) { make in
+                make.top.horizontalEdges.equalToSuperview()
+            }
         }
 
         @available(*, unavailable)
