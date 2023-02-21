@@ -68,7 +68,7 @@ public extension Templates {
             if let scrollView = contentView as? UIScrollView {
                 switch scrollView.contentInsetAdjustmentBehavior {
                 case .always, .automatic:
-                    scrollView.contentInset = .init(top: size.height, left: 0, bottom: 0, right: 0)
+                    scrollView.contentInset = .init(top: size.height - safeAreaInsets.top, left: 0, bottom: 0, right: 0)
                 default:
                     scrollView.contentInset = .zero
                 }
