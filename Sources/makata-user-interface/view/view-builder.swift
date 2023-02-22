@@ -20,6 +20,10 @@ public enum ComponentBuilder {
         [expression]
     }
 
+    public static func buildExpression(_ expression: [UIView]) -> Component {
+        expression
+    }
+
     public static func buildEither(first component: ComponentBuilder.Component) -> ComponentBuilder.Component {
         component
     }
