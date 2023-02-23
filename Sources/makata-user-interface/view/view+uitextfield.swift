@@ -9,15 +9,15 @@ import makataInteraction
 import UIKit
 
 public extension UITextField {
-    func textChanges(_ action: Binding<some AnyObject, String>) -> Lifetimeable {
+    func textChanges(_ action: Binding<some AnyObject, String>, maxLength: Int = .max) -> Lifetimeable {
         text = action.initialValue
 
-        return TextChangesProxy(source: self, action: action.action)
+        return TextChangesProxy(source: self, action: action.action, maxLength: maxLength)
     }
 
     @discardableResult
-    func textChanges(_ action: Binding<some AnyObject, String>, lifetime: inout Lifetimeable?) -> Self {
-        lifetime = textChanges(action)
+    func textChanges(_ action: Binding<some AnyObject, String>, maxLength: Int = .max, lifetime: inout Lifetimeable?) -> Self {
+        lifetime = textChanges(action, maxLength: maxLength)
 
         return self
     }
@@ -29,12 +29,12 @@ extension UITextField {
 
         weak var source: UITextField!
 
-        init(source: UITextField, action: @escaping (String) throws -> String) {
+        init(source: UITextField, action: @escaping (String) throws -> String, maxLength: Int) {
             self.source = source
 
             source.addAction(UIAction(identifier: identifier) { [unowned source] _ in
                 do {
-                    source.text = try action(source.text ?? "")
+                    source.text = try action(String((source.text ?? "").prefix(maxLength)))
                 } catch {
                     print("TextChangesProxy: Unhandled failure in setting value to text field.")
                     print("If you intend to catch this error, change your target type to be boxed in a `PartialValue`.")
