@@ -6,7 +6,7 @@
 import Foundation
 
 public struct Binding<Source: AnyObject, Value> {
-    public let action: (Value) throws -> Value
+    public var action: (Value) throws -> Value
     public let initialValue: Value?
 
     public init(
