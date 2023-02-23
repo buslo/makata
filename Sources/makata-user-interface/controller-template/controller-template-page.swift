@@ -62,7 +62,7 @@ public extension Templates {
             super.layoutSubviews()
 
             let size = headerView!.systemLayoutSizeFitting(
-                .init(width: bounds.width, height: 100),
+                .init(width: bounds.width, height: UIView.layoutFittingCompressedSize.height),
                 withHorizontalFittingPriority: .required,
                 verticalFittingPriority: .fittingSizeLevel
             )
