@@ -38,4 +38,21 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
             page.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
         }
     }
+    
+    open override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        if let page = screenTemplate as? HasHeader, let headerView = page.headerView, page.headerAffectsLayout {
+            let size = headerView.systemLayoutSizeFitting(
+                .init(
+                    width: view.bounds.width,
+                    height: UIView.layoutFittingCompressedSize.height
+                ),
+                withHorizontalFittingPriority: .required,
+                verticalFittingPriority: .fittingSizeLevel
+            )
+            
+            additionalSafeAreaInsets = .init(top: size.height - view.safeAreaInsets.top, left: 0, bottom: 0, right: 0)
+        }
+    }
 }

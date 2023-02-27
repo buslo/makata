@@ -9,6 +9,8 @@ import UIKit
 
 public extension Templates {
     final class Page: UIView, HasHeader {
+        public let headerAffectsLayout: Bool = true
+        
         public private(set) weak var headerView: (UIView & ViewHeader)?
         public private(set) weak var contentView: UIView!
 
@@ -56,25 +58,6 @@ public extension Templates {
         @available(*, unavailable)
         public required init?(coder _: NSCoder) {
             fatalError()
-        }
-
-        override public func layoutSubviews() {
-            super.layoutSubviews()
-
-            let size = headerView!.systemLayoutSizeFitting(
-                .init(width: bounds.width, height: UIView.layoutFittingCompressedSize.height),
-                withHorizontalFittingPriority: .required,
-                verticalFittingPriority: .fittingSizeLevel
-            )
-
-            if let scrollView = contentView as? UIScrollView {
-                switch scrollView.contentInsetAdjustmentBehavior {
-                case .always, .automatic:
-                    scrollView.contentInset = .init(top: size.height - safeAreaInsets.top, left: 0, bottom: 0, right: 0)
-                default:
-                    scrollView.contentInset = .zero
-                }
-            }
         }
     }
 }
