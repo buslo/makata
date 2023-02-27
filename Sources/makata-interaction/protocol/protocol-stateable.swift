@@ -13,6 +13,8 @@ public protocol Stateable: AnyObject {
 
 public extension Stateable {
     func updateState(to state: State) async {
+        stateHandler.current = state
+        
         await stateHandler.provider(state)
     }
 }
