@@ -59,5 +59,22 @@ public extension Templates {
         public required init?(coder _: NSCoder) {
             fatalError()
         }
+        
+        public override func layoutSubviews() {
+            if let scrollView = contentView as? UIScrollView, let header = headerView {
+                let size = header.systemLayoutSizeFitting(
+                    .init(
+                        width: bounds.width,
+                        height: UIView.layoutFittingCompressedSize.height
+                    ),
+                    withHorizontalFittingPriority: .required,
+                    verticalFittingPriority: .fittingSizeLevel
+                )
+                
+                scrollView.contentInset = .init(top: size.height - safeAreaInsets.top, left: 0, bottom: 0, right: 0)
+            }
+            
+            super.layoutSubviews()
+        }
     }
 }

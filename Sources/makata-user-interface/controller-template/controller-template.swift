@@ -10,6 +10,4 @@ public enum Templates {}
 
 public protocol HasHeader: AnyObject {
     var headerView: (UIView & ViewHeader)? { get }
-    
-    var headerAffectsLayout: Bool { get }
 }
