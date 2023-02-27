@@ -20,8 +20,6 @@ public extension Templates {
 
         public let dataSource: DataSource
 
-        public let headerAffectsLayout: Bool = false
-        
         public private(set) weak var headerView: (UIView & ViewHeader)?
 
         public private(set) weak var collectionView: UICollectionView!

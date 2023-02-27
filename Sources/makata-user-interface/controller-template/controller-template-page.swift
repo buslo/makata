@@ -9,8 +9,6 @@ import UIKit
 
 public extension Templates {
     final class Page: UIView, HasHeader {
-        public let headerAffectsLayout: Bool = true
-        
         public private(set) weak var headerView: (UIView & ViewHeader)?
         public private(set) weak var contentView: UIView!
 
