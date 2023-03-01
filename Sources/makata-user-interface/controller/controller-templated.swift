@@ -7,7 +7,7 @@ import Foundation
 import UIKit
 
 open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
-    public lazy var screenTemplate: Template = loadTemplate()
+    public lazy var screenTemplate: Template = loadTemplate(frame: parent?.view.frame ?? .zero)
 
     open override var title: String? {
         didSet {
@@ -27,22 +27,20 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
         }
     }
 
-    open func loadTemplate() -> Template {
+    open func loadTemplate(frame: CGRect) -> Template {
         fatalError()
     }
 
     override open func loadView() {
         view = screenTemplate
-        
-        if let parent {
-            view.frame = parent.view.bounds
-        }
 
         if let template = screenTemplate as? HasHeader {
             template.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
         }
         
-        view.setNeedsLayout()
-        view.layoutIfNeeded()
+        if let template = screenTemplate as? Templates.Page {
+            // Not comfortable in doing this...
+            template.updateScrollViewInsets()
+        }
     }
 }

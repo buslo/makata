@@ -34,12 +34,13 @@ public extension Templates {
         }()
 
         public init(
+            frame: CGRect,
             header: __owned UIView & ViewHeader,
             footer: __owned UIView = UIView(),
             content: __owned UIView,
             contentConstraints: (Page, ConstraintMaker) -> Void = { $1.edges.equalToSuperview() }
         ) {
-            super.init(frame: .zero)
+            super.init(frame: frame)
 
             if content is UICollectionView {
                 fatalError("Do not use this template. Use the Collection template instead.")
@@ -58,14 +59,14 @@ public extension Templates {
 
             content.snp.contentCompressionResistanceVerticalPriority = UILayoutPriority.required.rawValue
 
+            content.snp.makeConstraints { make in
+                contentConstraints(self, make)
+            }
+
             headerView?.snp.makeConstraints { make in
                make.top
                    .horizontalEdges
                    .equalToSuperview()
-            }
-
-            content.snp.makeConstraints { make in
-                contentConstraints(self, make)
             }
 
             remakeFooterConstraints()

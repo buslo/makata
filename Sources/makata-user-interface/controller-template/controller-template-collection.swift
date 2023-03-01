@@ -27,6 +27,7 @@ public extension Templates {
         let delegate = DelegateProxy<E>()
 
         public init(
+            frame: CGRect,
             header: __owned (UIView & ViewHeader)? = nil,
             footer: __owned UIView? = nil,
             source: (__shared UICollectionView) -> DataSource,
@@ -47,7 +48,7 @@ public extension Templates {
             let source = source(collectionView)
             dataSource = source
 
-            super.init(frame: .zero)
+            super.init(frame: frame)
 
             let initialSupplementaryProvider = source.supplementaryViewProvider
 
