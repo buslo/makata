@@ -4,7 +4,6 @@
 // Created 2/4/23
 
 import Foundation
-import Combine
 import SnapKit
 import UIKit
 
@@ -22,8 +21,6 @@ public extension Templates {
         
         weak var headerVisualEffectView: UIVisualEffectView!
 
-        var scrollCancellation: AnyCancellable!
-        
         public var keyboardInsetBehavior = KeyboardInsetBehavior.ignore {
             didSet {
                 remakeFooterConstraints()
@@ -53,16 +50,6 @@ public extension Templates {
             
             if let content = content as? UIScrollView {
                 content.alwaysBounceVertical = true
-
-                scrollCancellation = content
-                    .publisher(for: \.contentOffset)
-                    .sink { [unowned self] point in
-                        guard let headerVisualEffectView else {
-                            return
-                        }
-
-                        headerVisualEffectView.isHidden = point.y > 0
-                    }
             }
 
             headerView = header
@@ -75,8 +62,7 @@ public extension Templates {
 
             insertSubview(
                 UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-                    .assign(to: &headerVisualEffectView)
-                    .hidden(),
+                    .assign(to: &headerVisualEffectView),
                 belowSubview: header
             )
             
