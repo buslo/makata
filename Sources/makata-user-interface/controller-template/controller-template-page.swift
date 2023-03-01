@@ -10,6 +10,8 @@ import UIKit
 public extension Templates {
     final class Page: UIView, HasHeader {
         public private(set) weak var headerView: (UIView & ViewHeader)?
+        public private(set) weak var footerView: UIView?
+        
         public private(set) weak var contentView: UIView!
 
         public lazy var contentViewLayoutGuide: UILayoutGuide = {
@@ -30,6 +32,7 @@ public extension Templates {
 
         public init(
             header: __owned UIView & ViewHeader,
+            footer: __owned UIView = UIView(),
             content: __owned UIView,
             contentConstraints: (Page, ConstraintMaker) -> Void = { $1.edges.equalToSuperview() }
         ) {
@@ -40,12 +43,24 @@ public extension Templates {
             }
 
             headerView = header
+            footerView = footer
             contentView = content
 
             addSubview(content)
 
+            header.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
+            footer.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
+
             addSubview(view: header) { make in
-                make.top.horizontalEdges.equalToSuperview()
+                make.top
+                    .horizontalEdges
+                    .equalToSuperview()
+            }
+            
+            addSubview(view: footer) { make in
+                make.bottom
+                    .horizontalEdges
+                    .equalToSuperview()
             }
             
             content.snp.makeConstraints { make in
@@ -59,17 +74,47 @@ public extension Templates {
         }
         
         public override func layoutSubviews() {
-            if let scrollView = contentView as? UIScrollView, let header = headerView {
-                let size = header.systemLayoutSizeFitting(
-                    .init(
-                        width: bounds.width,
-                        height: UIView.layoutFittingCompressedSize.height
-                    ),
-                    withHorizontalFittingPriority: .required,
-                    verticalFittingPriority: .fittingSizeLevel
-                )
+            if let scrollView = contentView as? UIScrollView {
+                var topOffset: CGFloat = 0
+                var bottomOffset: CGFloat = 0
                 
-                scrollView.contentInset = .init(top: size.height - safeAreaInsets.top, left: 0, bottom: 0, right: 0)
+                if let header = headerView {
+                    let size = header.systemLayoutSizeFitting(
+                        .init(
+                            width: bounds.width,
+                            height: UIView.layoutFittingCompressedSize.height
+                        ),
+                        withHorizontalFittingPriority: .required,
+                        verticalFittingPriority: .fittingSizeLevel
+                    )
+                    
+                    topOffset = size.height
+                }
+                
+                if let footer = footerView {
+                    let size = footer.systemLayoutSizeFitting(
+                        .init(
+                            width: bounds.width,
+                            height: UIView.layoutFittingCompressedSize.height
+                        ),
+                        withHorizontalFittingPriority: .required,
+                        verticalFittingPriority: .fittingSizeLevel
+                    )
+                    
+                    bottomOffset = size.height
+                }
+                
+                switch scrollView.contentInsetAdjustmentBehavior {
+                case .never:
+                    scrollView.contentInset = .init(top: topOffset, left: 0, bottom: bottomOffset, right: 0)
+                default:
+                    scrollView.contentInset = .init(
+                        top: topOffset - safeAreaInsets.top,
+                        left: 0,
+                        bottom: bottomOffset - safeAreaInsets.bottom,
+                        right: 0
+                    )
+                }
             }
             
             super.layoutSubviews()
