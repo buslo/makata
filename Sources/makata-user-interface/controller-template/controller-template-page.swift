@@ -56,6 +56,8 @@ public extension Templates {
             header.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
             footer.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
 
+            content.snp.contentCompressionResistanceVerticalPriority = UILayoutPriority.required.rawValue
+
             headerView?.snp.makeConstraints { make in
                make.top
                    .horizontalEdges
@@ -101,6 +103,11 @@ public extension Templates {
                 case .normal:
                     make.bottom
                         .equalTo(keyboardLayoutGuide.snp.top)
+                        .priority(.required)
+                    
+                    make.bottom
+                        .equalToSuperview()
+                        .priority(999)
                 case .ignore:
                     make.bottom
                         .equalToSuperview()
