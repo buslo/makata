@@ -73,18 +73,16 @@ public extension Templates {
             addSubview(header)
             addSubview(footer)
 
-            addSubview(view: UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-                .assign(to: &headerVisualEffectView)
-                .hidden()
-            ) { make in
-                make.edges
-                    .equalTo(header)
-            }
-
+            insertSubview(
+                UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+                    .assign(to: &headerVisualEffectView)
+                    .hidden(),
+                belowSubview: header
+            )
+            
             headerVisualEffectView.contentView.addSubview(
                 view: UIView()
                     .backgroundColor(.separator)
-                    .hidden()
             ) { make in
                 make.horizontalEdges
                     .bottom
@@ -107,6 +105,11 @@ public extension Templates {
                make.top
                    .horizontalEdges
                    .equalToSuperview()
+            }
+            
+            headerVisualEffectView.snp.makeConstraints { make in
+                make.edges
+                    .equalTo(header)
             }
 
             remakeFooterConstraints()
