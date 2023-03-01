@@ -131,7 +131,7 @@ public extension Templates {
                         verticalFittingPriority: .fittingSizeLevel
                     )
                     
-                    topOffset = size.height
+                    topOffset = ceil(size.height)
                 }
                 
                 if let footer = footerView {
@@ -144,19 +144,19 @@ public extension Templates {
                         verticalFittingPriority: .fittingSizeLevel
                     )
 
-                    bottomOffset = size.height
+                    bottomOffset = ceil(size.height)
                 }
                 
                 switch scrollView.contentInsetAdjustmentBehavior {
                 case .never:
                     scrollView.contentInset = .init(top: topOffset, left: 0, bottom: bottomOffset, right: 0)
+                    scrollView.contentOffset = .init(x: 0, y: -topOffset)
                 default:
-                    scrollView.contentInset = .init(
-                        top: max(0, topOffset - safeAreaInsets.top),
-                        left: 0,
-                        bottom: max(0, bottomOffset - safeAreaInsets.bottom),
-                        right: 0
-                    )
+                    let finalTopOffset = max(0, topOffset - safeAreaInsets.top)
+                    let finalBottomOffset = max(0, bottomOffset - safeAreaInsets.bottom)
+                    
+                    scrollView.contentInset = .init(top: finalTopOffset, left: 0, bottom: finalBottomOffset, right: 0)
+                    scrollView.contentOffset = .init(x: 0, y: -finalTopOffset)
                 }
             }
         }
