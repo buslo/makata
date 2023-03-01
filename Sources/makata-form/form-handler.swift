@@ -13,6 +13,8 @@ public class FormHandler<Shape> {
 
     public struct State {
         public let isValid: Bool
+        public let isSubmitInvoked: Bool
+
         public let validationResult: FormValidation<Shape>.Result
     }
 
@@ -20,16 +22,20 @@ public class FormHandler<Shape> {
 
     public var current: Shape
 
+    var submitInvoked: Bool
     var updateHandler: UpdatesHandler = { _, _ async in }
 
     var validations: FormValidation<Shape>?
 
-    public init(initial: Shape) {
+    public init(initial: Shape, submitInvoked: Bool = false) {
         self.current = initial
+        self.submitInvoked = submitInvoked
     }
 
     func submit(_ callback: @escaping (Shape) async throws -> Void) async throws {
-        let errors = validations?.validate(current) ?? .noErrors
+        submitInvoked = true
+
+        let errors = await pushUpdates()
 
         if !errors.fields.isEmpty {
             throw Errors.invalid(errors)
@@ -38,11 +44,18 @@ public class FormHandler<Shape> {
         try await callback(current)
     }
 
-    func pushUpdates() {
-        Task {
-            let result = validations?.validate(current) ?? .noErrors
-            await updateHandler(current, .init(isValid: result.fields.isEmpty, validationResult: result))
-        }
+    func pushUpdates() async -> FormValidation<Shape>.Result {
+        let result = validations?.validate(current) ?? .noErrors
+        await updateHandler(
+            current,
+            .init(
+                isValid: result.fields.isEmpty,
+                isSubmitInvoked: submitInvoked,
+                validationResult: result
+            )
+        )
+        
+        return result
     }
 }
 
@@ -51,7 +64,7 @@ public extension FormHandler {
     func callAsFunction(_ callback: @escaping UpdatesHandler) -> Self {
         updateHandler = callback
 
-        pushUpdates()
+        Task { @MainActor () in await pushUpdates() }
 
         return self
     }
@@ -60,7 +73,7 @@ public extension FormHandler {
     func setValidationHandler(_ handler: FormValidation<Shape>?) -> Self {
         validations = handler
 
-        pushUpdates()
+        Task { @MainActor () in await pushUpdates() }
 
         return self
     }
@@ -73,7 +86,7 @@ public extension FormHandler {
         }
         set {
             current[keyPath: member] = newValue
-            pushUpdates()
+            Task { @MainActor () in await pushUpdates() }
         }
     }
 }
