@@ -150,13 +150,11 @@ public extension Templates {
                 switch scrollView.contentInsetAdjustmentBehavior {
                 case .never:
                     scrollView.contentInset = .init(top: topOffset, left: 0, bottom: bottomOffset, right: 0)
-                    scrollView.contentOffset = .init(x: 0, y: -topOffset)
                 default:
                     let finalTopOffset = max(0, topOffset - safeAreaInsets.top)
                     let finalBottomOffset = max(0, bottomOffset - safeAreaInsets.bottom)
                     
                     scrollView.contentInset = .init(top: finalTopOffset, left: 0, bottom: finalBottomOffset, right: 0)
-                    scrollView.contentOffset = .init(x: 0, y: -finalTopOffset)
                 }
             }
         }

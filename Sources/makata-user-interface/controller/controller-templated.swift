@@ -37,10 +37,8 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
         if let template = screenTemplate as? HasHeader {
             template.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
         }
-        
-        if let template = screenTemplate as? Templates.Page {
-            // Not comfortable in doing this...
-            template.updateScrollViewInsets()
-        }
+
+        view.setNeedsLayout()
+        view.layoutSubviews()
     }
 }
