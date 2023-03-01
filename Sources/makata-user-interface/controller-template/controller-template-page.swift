@@ -4,6 +4,7 @@
 // Created 2/4/23
 
 import Foundation
+import Combine
 import SnapKit
 import UIKit
 
@@ -18,7 +19,11 @@ public extension Templates {
         public private(set) weak var footerView: UIView?
         
         public private(set) weak var contentView: UIView!
+        
+        weak var headerVisualEffectView: UIVisualEffectView!
 
+        var scrollCancellation: AnyCancellable!
+        
         public var keyboardInsetBehavior = KeyboardInsetBehavior.ignore {
             didSet {
                 remakeFooterConstraints()
@@ -45,6 +50,20 @@ public extension Templates {
             if content is UICollectionView {
                 fatalError("Do not use this template. Use the Collection template instead.")
             }
+            
+            if let content = content as? UIScrollView {
+                content.alwaysBounceVertical = true
+
+                scrollCancellation = content
+                    .publisher(for: \.contentOffset)
+                    .sink { [unowned self] point in
+                        guard let headerVisualEffectView else {
+                            return
+                        }
+
+                        headerVisualEffectView.isHidden = point.y > 0
+                    }
+            }
 
             headerView = header
             footerView = footer
@@ -53,6 +72,27 @@ public extension Templates {
             addSubview(content)
             addSubview(header)
             addSubview(footer)
+
+            addSubview(view: UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+                .assign(to: &headerVisualEffectView)
+                .hidden()
+            ) { make in
+                make.edges
+                    .equalTo(header)
+            }
+
+            headerVisualEffectView.contentView.addSubview(
+                view: UIView()
+                    .backgroundColor(.separator)
+                    .hidden()
+            ) { make in
+                make.horizontalEdges
+                    .bottom
+                    .equalToSuperview()
+
+                make.height
+                    .equalTo(1 / UIScreen.main.scale)
+            }
 
             header.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
             footer.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
@@ -75,6 +115,19 @@ public extension Templates {
         @available(*, unavailable)
         public required init?(coder _: NSCoder) {
             fatalError()
+        }
+        
+        public override func layoutSubviews() {
+            super.layoutSubviews()
+            
+            updateScrollViewInsets()
+        }
+        
+        @discardableResult
+        public func keyboardInsetBehavior(_ behavior: KeyboardInsetBehavior) -> Self {
+            self.keyboardInsetBehavior = behavior
+            
+            return self
         }
         
         func remakeFooterConstraints() {
@@ -153,23 +206,10 @@ public extension Templates {
                 default:
                     let finalTopOffset = max(0, topOffset - safeAreaInsets.top)
                     let finalBottomOffset = max(0, bottomOffset - safeAreaInsets.bottom)
-                    
+
                     scrollView.contentInset = .init(top: finalTopOffset, left: 0, bottom: finalBottomOffset, right: 0)
                 }
             }
-        }
-        
-        public override func layoutSubviews() {
-            super.layoutSubviews()
-            
-            updateScrollViewInsets()
-        }
-        
-        @discardableResult
-        public func keyboardInsetBehavior(_ behavior: KeyboardInsetBehavior) -> Self {
-            self.keyboardInsetBehavior = behavior
-            
-            return self
         }
     }
 }
