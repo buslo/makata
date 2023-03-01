@@ -33,9 +33,16 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
 
     override open func loadView() {
         view = screenTemplate
-
-        if let page = screenTemplate as? HasHeader {
-            page.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
+        
+        if let parent {
+            view.frame = parent.view.bounds
         }
+
+        if let template = screenTemplate as? HasHeader {
+            template.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
+        }
+        
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
     }
 }

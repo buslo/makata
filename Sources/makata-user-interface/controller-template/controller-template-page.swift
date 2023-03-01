@@ -115,7 +115,7 @@ public extension Templates {
             }
         }
         
-        public override func layoutSubviews() {
+        func updateScrollViewInsets() {
             if let scrollView = contentView as? UIScrollView {
                 var topOffset: CGFloat = 0
                 var bottomOffset: CGFloat = 0
@@ -158,8 +158,12 @@ public extension Templates {
                     )
                 }
             }
-            
+        }
+        
+        public override func layoutSubviews() {
             super.layoutSubviews()
+            
+            updateScrollViewInsets()
         }
         
         @discardableResult
