@@ -41,6 +41,8 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
         }
 
         view.setNeedsLayout()
+        view.setNeedsUpdateConstraints()
+        
         view.layoutSubviews()
     }
 }
