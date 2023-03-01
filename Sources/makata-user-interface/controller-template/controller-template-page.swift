@@ -9,23 +9,26 @@ import UIKit
 
 public extension Templates {
     final class Page: UIView, HasHeader {
+        public enum KeyboardInsetBehavior {
+            case normal
+            case ignore
+        }
+        
         public private(set) weak var headerView: (UIView & ViewHeader)?
         public private(set) weak var footerView: UIView?
         
         public private(set) weak var contentView: UIView!
 
+        public var keyboardInsetBehavior = KeyboardInsetBehavior.ignore {
+            didSet {
+                remakeFooterConstraints()
+                setNeedsLayout()
+            }
+        }
+
         public lazy var contentViewLayoutGuide: UILayoutGuide = {
             let layoutGuide = UILayoutGuide()
             addLayoutGuide(layoutGuide)
-
-            layoutGuide.snp.makeConstraints { make in
-                make.top
-                    .equalTo(headerView!.snp.bottom)
-
-                make.horizontalEdges
-                    .bottom
-                    .equalToSuperview()
-            }
 
             return layoutGuide
         }()
@@ -47,30 +50,62 @@ public extension Templates {
             contentView = content
 
             addSubview(content)
+            addSubview(header)
+            addSubview(footer)
 
             header.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
             footer.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
 
-            addSubview(view: header) { make in
-                make.top
-                    .horizontalEdges
-                    .equalToSuperview()
+            headerView?.snp.makeConstraints { make in
+               make.top
+                   .horizontalEdges
+                   .equalToSuperview()
             }
-            
-            addSubview(view: footer) { make in
-                make.bottom
-                    .horizontalEdges
-                    .equalToSuperview()
-            }
-            
+
             content.snp.makeConstraints { make in
                 contentConstraints(self, make)
             }
+
+            remakeFooterConstraints()
         }
 
         @available(*, unavailable)
         public required init?(coder _: NSCoder) {
             fatalError()
+        }
+        
+        func remakeFooterConstraints() {
+            footerView?.snp.remakeConstraints { make in
+                switch keyboardInsetBehavior {
+                case .normal:
+                    make.horizontalEdges
+                        .equalToSuperview()
+                    
+                    make.bottom
+                        .equalTo(keyboardLayoutGuide.snp.top)
+                case .ignore:
+                    make.bottom
+                        .horizontalEdges
+                        .equalToSuperview()
+                }
+            }
+            
+            contentViewLayoutGuide.snp.remakeConstraints { make in
+                make.top
+                    .equalTo(headerView!.snp.bottom)
+
+                make.horizontalEdges
+                    .equalToSuperview()
+                
+                switch keyboardInsetBehavior {
+                case .normal:
+                    make.bottom
+                        .equalTo(keyboardLayoutGuide.snp.top)
+                case .ignore:
+                    make.bottom
+                        .equalToSuperview()
+                }
+            }
         }
         
         public override func layoutSubviews() {
@@ -100,7 +135,7 @@ public extension Templates {
                         withHorizontalFittingPriority: .required,
                         verticalFittingPriority: .fittingSizeLevel
                     )
-                    
+
                     bottomOffset = size.height
                 }
                 
@@ -118,6 +153,13 @@ public extension Templates {
             }
             
             super.layoutSubviews()
+        }
+        
+        @discardableResult
+        public func keyboardInsetBehavior(_ behavior: KeyboardInsetBehavior) -> Self {
+            self.keyboardInsetBehavior = behavior
+            
+            return self
         }
     }
 }
