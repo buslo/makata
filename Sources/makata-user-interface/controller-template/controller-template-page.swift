@@ -151,9 +151,9 @@ public extension Templates {
                     scrollView.contentInset = .init(top: topOffset, left: 0, bottom: bottomOffset, right: 0)
                 default:
                     scrollView.contentInset = .init(
-                        top: topOffset - safeAreaInsets.top,
+                        top: max(0, topOffset - safeAreaInsets.top),
                         left: 0,
-                        bottom: bottomOffset - safeAreaInsets.bottom,
+                        bottom: max(0, bottomOffset - safeAreaInsets.bottom),
                         right: 0
                     )
                 }
