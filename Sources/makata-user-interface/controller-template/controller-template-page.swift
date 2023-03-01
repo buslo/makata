@@ -8,7 +8,7 @@ import SnapKit
 import UIKit
 
 public extension Templates {
-    final class Page: UIView, HasHeader {
+    final class Page: UIView, UIScrollViewDelegate, HasHeader {
         public enum KeyboardInsetBehavior {
             case normal
             case ignore
@@ -50,6 +50,7 @@ public extension Templates {
             
             if let content = content as? UIScrollView {
                 content.alwaysBounceVertical = true
+                content.delegate = self
             }
 
             headerView = header
@@ -117,6 +118,10 @@ public extension Templates {
             self.keyboardInsetBehavior = behavior
             
             return self
+        }
+        
+        public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            headerVisualEffectView.isHidden = scrollView.contentOffset.y < 0
         }
         
         func remakeFooterConstraints() {
