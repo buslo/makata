@@ -121,7 +121,7 @@ public extension Templates {
         }
         
         public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            headerVisualEffectView.isHidden = (scrollView.contentInset.top + scrollView.contentOffset.y) < 0
+            headerVisualEffectView.isHidden = ((safeAreaInsets.top + scrollView.contentInset.top) + scrollView.contentOffset.y) < 0
         }
         
         func remakeFooterConstraints() {
