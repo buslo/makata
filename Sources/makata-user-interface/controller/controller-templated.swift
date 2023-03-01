@@ -40,9 +40,10 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
             template.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
         }
 
-        view.setNeedsLayout()
         view.setNeedsUpdateConstraints()
-        
+        view.updateConstraintsIfNeeded()
+
+        view.setNeedsLayout()
         view.layoutSubviews()
     }
 }
