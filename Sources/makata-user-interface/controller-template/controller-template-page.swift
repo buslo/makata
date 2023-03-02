@@ -8,23 +8,22 @@ import SnapKit
 import UIKit
 
 public extension Templates {
-    final class Page: UIView, UIScrollViewDelegate, HasHeader {
+    final class Page: UIView, HasHeader {
         public enum KeyboardInsetBehavior {
             case normal
             case ignore
         }
         
+        weak var headerVisualEffectView: UIVisualEffectView!
+        
         public private(set) weak var headerView: (UIView & ViewHeader)?
         public private(set) weak var footerView: UIView?
         
-        public private(set) weak var contentContainerView: UIScrollView!
         public private(set) weak var contentView: UIView!
+        public private(set) weak var contentContainerView: UIScrollView!
         
-        weak var headerVisualEffectView: UIVisualEffectView!
-
         public var keyboardInsetBehavior = KeyboardInsetBehavior.ignore {
             didSet {
-                remakeContentConstraints()
                 setNeedsLayout()
             }
         }
@@ -40,8 +39,7 @@ public extension Templates {
             frame: CGRect,
             header: __owned UIView & ViewHeader,
             footer: __owned UIView? = nil,
-            content: __owned UIView,
-            contentConstraints: (Page, ConstraintMaker) -> Void = { $1.edges.equalToSuperview() }
+            content: __owned UIView
         ) {
             super.init(frame: frame)
 
@@ -52,54 +50,33 @@ public extension Templates {
             headerView = header
             footerView = footer
             contentView = content
-
-            addSubview(
-                UIScrollView(frame: frame)
-                    .assign(to: &contentContainerView)
-            )
-
+            
+            addSubview(UIScrollView().assign(to: &contentContainerView))
+            addSubview(UIVisualEffectView(effect: UIBlurEffect(style: .regular)).assign(to: &headerVisualEffectView))
+            
+            headerVisualEffectView.contentView.addSubview(view: UIView().backgroundColor(.separator)) { make in
+                make.horizontalEdges
+                    .bottom
+                    .equalToSuperview()
+                
+                make.height
+                    .equalTo(1 / UIScreen.main.scale)
+            }
+            
+            setupHeaderLayout()
+            setupFooterLayout()
+            setupContentLayout()
+            
             addSubview(header)
             
             if let footer {
                 addSubview(footer)
             }
             
-            insertSubview(
-                UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-                    .assign(to: &headerVisualEffectView),
-                belowSubview: header
-            )
+            contentContainerView.delegate = self
+            contentContainerView.contentInsetAdjustmentBehavior = .never
             
-            headerVisualEffectView.contentView.addSubview(
-                view: UIView()
-                    .backgroundColor(.separator)
-            ) { make in
-                make.horizontalEdges
-                    .bottom
-                    .equalToSuperview()
-
-                make.height
-                    .equalTo(1 / UIScreen.main.scale)
-            }
-            
-            contentContainerView.addSubview(contentView)
-            
-            content.snp.makeConstraints { make in
-                contentConstraints(self, make)
-            }
-
-            headerView?.snp.makeConstraints { make in
-               make.top
-                   .horizontalEdges
-                   .equalToSuperview()
-            }
-            
-            headerVisualEffectView.snp.makeConstraints { make in
-                make.edges
-                    .equalTo(header)
-            }
-
-            remakeContentConstraints()
+            contentContainerView.addSubview(content)
         }
 
         @available(*, unavailable)
@@ -108,99 +85,141 @@ public extension Templates {
         }
         
         public override func layoutSubviews() {
+            setupHeaderLayout()
+            setupFooterLayout()
+            setupContentLayout()
+            
             super.layoutSubviews()
+        }
+        
+        public override func didMoveToSuperview() {
+            super.didMoveToSuperview()
             
-            updateScrollViewInsets()
-        }
-        
-        @discardableResult
-        public func keyboardInsetBehavior(_ behavior: KeyboardInsetBehavior) -> Self {
-            self.keyboardInsetBehavior = behavior
-            
-            return self
-        }
-        
-        public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            let headerHeight = safeAreaInsets.top + scrollView.contentInset.top
-            headerVisualEffectView.isHidden = (headerHeight + scrollView.contentOffset.y) <= 0
-        }
-        
-        func remakeContentConstraints() {
-            footerView?.snp.remakeConstraints { make in
-                switch keyboardInsetBehavior {
-                case .normal:
-                    make.horizontalEdges
-                        .equalToSuperview()
-                    
-                    make.bottom
-                        .equalTo(keyboardLayoutGuide.snp.top)
-                case .ignore:
-                    make.bottom
-                        .horizontalEdges
-                        .equalToSuperview()
-                }
+            guard superview != nil else {
+                return
             }
             
-            contentViewLayoutGuide.snp.remakeConstraints { make in
-                make.top
-                    .equalTo(headerView!.snp.bottom)
-
-                make.horizontalEdges
-                    .equalToSuperview()
-                
-                switch keyboardInsetBehavior {
-                case .normal:
-                    make.bottom
-                        .equalTo(keyboardLayoutGuide.snp.top)
-                        .priority(.required)
-                case .ignore:
-                    make.bottom
-                        .equalToSuperview()
-                }
-            }
+            layoutIfNeeded()
+            updateConstraintsIfNeeded()
+            
+            // Explicitly set content offset to mitigate bug that
+            // makes the content go under the header.
+            contentContainerView.contentOffset = .init(x: 0, y: -contentContainerView.contentInset.top)
         }
         
-        func updateScrollViewInsets() {
-            if let scrollView = contentView as? UIScrollView {
-                var topOffset: CGFloat = 0
-                var bottomOffset: CGFloat = 0
-                
-                if let header = headerView {
-                    let size = header.systemLayoutSizeFitting(
-                        .init(
-                            width: bounds.width,
-                            height: UIView.layoutFittingCompressedSize.height
-                        ),
-                        withHorizontalFittingPriority: .required,
-                        verticalFittingPriority: .fittingSizeLevel
-                    )
-                    
-                    topOffset = ceil(size.height)
-                }
-                
-                if let footer = footerView {
-                    let size = footer.systemLayoutSizeFitting(
-                        .init(
-                            width: bounds.width,
-                            height: UIView.layoutFittingCompressedSize.height
-                        ),
-                        withHorizontalFittingPriority: .required,
-                        verticalFittingPriority: .fittingSizeLevel
-                    )
-
-                    bottomOffset = ceil(size.height)
-                }
-                
-                switch scrollView.contentInsetAdjustmentBehavior {
-                case .never:
-                    scrollView.contentInset = .init(top: topOffset, left: 0, bottom: bottomOffset, right: 0)
-                default:
-                    let finalTopOffset = max(0, topOffset - safeAreaInsets.top)
-                    let finalBottomOffset = max(0, bottomOffset - safeAreaInsets.bottom)
-
-                    scrollView.contentInset = .init(top: finalTopOffset, left: 0, bottom: finalBottomOffset, right: 0)
-                }
+        func setupHeaderLayout() {
+            guard let headerView else {
+                return
             }
+
+            let headerSize = headerView.systemLayoutSizeFitting(
+                .init(width: bounds.width, height: UIView.layoutFittingCompressedSize.height),
+                withHorizontalFittingPriority: .required,
+                verticalFittingPriority: .fittingSizeLevel
+            )
+
+            headerView.frame = .init(
+                origin: .init(
+                    x: 0,
+                    y: safeAreaInsets.top
+                ),
+                size: .init(
+                    width: headerSize.width,
+                    height: headerSize.height
+                )
+            )
+            
+            headerVisualEffectView.frame = .init(
+                origin: .init(
+                    x: 0,
+                    y: 0
+                ),
+                size: .init(
+                    width: bounds.width,
+                    height: safeAreaInsets.top + headerSize.height
+                )
+            )
         }
+        
+        func setupFooterLayout() {
+            guard let footerView else {
+                return
+            }
+            
+            let footerSize = footerView.systemLayoutSizeFitting(
+                .init(width: bounds.width, height: UIView.layoutFittingCompressedSize.height),
+                withHorizontalFittingPriority: .required,
+                verticalFittingPriority: .fittingSizeLevel
+            )
+
+            footerView.frame = .init(
+                origin: .zero,
+                size: .init(
+                    width: footerSize.width,
+                    height: footerSize.height + safeAreaInsets.bottom
+                )
+            )
+        }
+        
+        func setupContentLayout() {
+            let headerHeight = headerView!.systemLayoutSizeFitting(
+                .init(
+                    width: bounds.width,
+                    height: UIView.layoutFittingCompressedSize.height
+                ),
+                withHorizontalFittingPriority: .required,
+                verticalFittingPriority: .fittingSizeLevel
+            ).height + safeAreaInsets.top
+            
+            let footerHeight = footerView?.systemLayoutSizeFitting(
+                .init(
+                    width: bounds.width,
+                    height: UIView.layoutFittingCompressedSize.height
+                ),
+                withHorizontalFittingPriority: .required,
+                verticalFittingPriority: .fittingSizeLevel
+            ).height ?? 0 + safeAreaInsets.bottom
+            
+            if let contentView {
+                let contentSize = contentView.systemLayoutSizeFitting(
+                    .init(width: bounds.width, height: UIView.layoutFittingCompressedSize.height),
+                    withHorizontalFittingPriority: .required,
+                    verticalFittingPriority: .fittingSizeLevel
+                )
+
+                contentView.frame = .init(origin: .zero, size: contentSize)
+                contentContainerView.contentSize = contentSize
+            }
+
+            contentContainerView.frame = bounds
+            contentContainerView.contentInset = .init(
+                top: ceil(headerHeight),
+                left: 0,
+                bottom: ceil(footerHeight),
+                right: 0
+            )
+            contentContainerView.scrollIndicatorInsets = .init(
+                top: ceil(headerHeight - safeAreaInsets.top),
+                left: 0,
+                bottom: ceil(footerHeight - safeAreaInsets.bottom),
+                right: 0
+            )
+        }
+    }
+}
+
+extension Templates.Page: UIScrollViewDelegate {
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let headerHeight = safeAreaInsets.top + headerView!.bounds.height
+        headerVisualEffectView.isHidden = (headerHeight + scrollView.contentOffset.y) <= 0
+    }
+}
+
+extension Templates.Page {
+    @discardableResult
+    public func keyboardInsetBehavior(_ behavior: KeyboardInsetBehavior) -> Self {
+        self.keyboardInsetBehavior = behavior
+        
+        return self
     }
 }
