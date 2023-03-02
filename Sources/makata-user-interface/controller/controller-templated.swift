@@ -39,5 +39,8 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
         if let template = screenTemplate as? HasHeader {
             template.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
         }
+        
+        screenTemplate.setNeedsLayout()
+        screenTemplate.layoutIfNeeded()
     }
 }

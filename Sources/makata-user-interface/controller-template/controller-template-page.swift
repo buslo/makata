@@ -17,13 +17,14 @@ public extension Templates {
         public private(set) weak var headerView: (UIView & ViewHeader)?
         public private(set) weak var footerView: UIView?
         
+        public private(set) weak var contentContainerView: UIScrollView!
         public private(set) weak var contentView: UIView!
         
         weak var headerVisualEffectView: UIVisualEffectView!
 
         public var keyboardInsetBehavior = KeyboardInsetBehavior.ignore {
             didSet {
-                remakeFooterConstraints()
+                remakeContentConstraints()
                 setNeedsLayout()
             }
         }
@@ -38,7 +39,7 @@ public extension Templates {
         public init(
             frame: CGRect,
             header: __owned UIView & ViewHeader,
-            footer: __owned UIView = UIView(),
+            footer: __owned UIView? = nil,
             content: __owned UIView,
             contentConstraints: (Page, ConstraintMaker) -> Void = { $1.edges.equalToSuperview() }
         ) {
@@ -48,18 +49,21 @@ public extension Templates {
                 fatalError("Do not use this template. Use the Collection template instead.")
             }
             
-            if let content = content as? UIScrollView {
-                content.delegate = self
-            }
-
             headerView = header
             footerView = footer
             contentView = content
 
-            addSubview(content)
-            addSubview(header)
-            addSubview(footer)
+            addSubview(
+                UIScrollView(frame: frame)
+                    .assign(to: &contentContainerView)
+            )
 
+            addSubview(header)
+            
+            if let footer {
+                addSubview(footer)
+            }
+            
             insertSubview(
                 UIVisualEffectView(effect: UIBlurEffect(style: .regular))
                     .assign(to: &headerVisualEffectView),
@@ -77,12 +81,9 @@ public extension Templates {
                 make.height
                     .equalTo(1 / UIScreen.main.scale)
             }
-
-            header.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
-            footer.snp.contentHuggingVerticalPriority = UILayoutPriority.required.rawValue
-
-            content.snp.contentCompressionResistanceVerticalPriority = UILayoutPriority.required.rawValue
-
+            
+            contentContainerView.addSubview(contentView)
+            
             content.snp.makeConstraints { make in
                 contentConstraints(self, make)
             }
@@ -98,7 +99,7 @@ public extension Templates {
                     .equalTo(header)
             }
 
-            remakeFooterConstraints()
+            remakeContentConstraints()
         }
 
         @available(*, unavailable)
@@ -120,10 +121,11 @@ public extension Templates {
         }
         
         public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            headerVisualEffectView.isHidden = ((safeAreaInsets.top + scrollView.contentInset.top) + scrollView.contentOffset.y) <= 0
+            let headerHeight = safeAreaInsets.top + scrollView.contentInset.top
+            headerVisualEffectView.isHidden = (headerHeight + scrollView.contentOffset.y) <= 0
         }
         
-        func remakeFooterConstraints() {
+        func remakeContentConstraints() {
             footerView?.snp.remakeConstraints { make in
                 switch keyboardInsetBehavior {
                 case .normal:
@@ -151,10 +153,6 @@ public extension Templates {
                     make.bottom
                         .equalTo(keyboardLayoutGuide.snp.top)
                         .priority(.required)
-                    
-                    make.bottom
-                        .equalToSuperview()
-                        .priority(999)
                 case .ignore:
                     make.bottom
                         .equalToSuperview()
