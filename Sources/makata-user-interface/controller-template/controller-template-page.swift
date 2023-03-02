@@ -49,7 +49,6 @@ public extension Templates {
             }
             
             if let content = content as? UIScrollView {
-                content.alwaysBounceVertical = true
                 content.delegate = self
             }
 
