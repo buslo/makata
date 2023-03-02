@@ -187,8 +187,11 @@ public extension Templates {
                     verticalFittingPriority: .fittingSizeLevel
                 )
 
-                contentView.frame = .init(origin: .zero, size: contentSize)
-                contentContainerView.contentSize = contentSize
+                let contentHeight = max(bounds.height - (headerHeight + footerHeight), contentSize.height)
+                let finalContentSize = CGSize(width: bounds.width, height: contentHeight)
+
+                contentView.frame = .init(origin: .zero, size: finalContentSize)
+                contentContainerView.contentSize = finalContentSize
             }
 
             contentContainerView.frame = bounds
