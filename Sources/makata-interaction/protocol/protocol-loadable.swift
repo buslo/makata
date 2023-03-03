@@ -8,7 +8,7 @@ import Foundation
 public protocol Loadable: Stateable where State == LoadableDataState<LoadableData> {
     associatedtype LoadableData
 
-    func loadData() async throws -> LoadableData
+    func loadData(previousData: LoadableData?) async throws -> LoadableData
 
     func invalidate() async
 }
@@ -26,7 +26,7 @@ public extension Loadable {
         await updateState(to: .pending(previousData))
 
         do {
-            let newData = try await loadData()
+            let newData = try await loadData(previousData: previousData)
 
             await updateState(to: .success(newData))
         } catch {
