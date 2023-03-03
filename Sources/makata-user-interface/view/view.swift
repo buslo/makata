@@ -26,7 +26,10 @@ public extension UIView {
         return view
     }
 
-    convenience init(containing: some UIView, constraints: (ConstraintMaker) -> Void) {
+    convenience init(
+        containing: some UIView,
+        constraints: (ConstraintMaker) -> Void = { $0.edges.equalToSuperview() }
+    ) {
         self.init(frame: .zero)
 
         addSubview(view: containing, constraints: constraints)
