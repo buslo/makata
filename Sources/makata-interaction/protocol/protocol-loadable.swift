@@ -25,6 +25,10 @@ public extension Loadable {
 
         await updateState(to: .pending(previousData))
 
+        if Task.isCancelled {
+            return
+        }
+
         do {
             let newData = try await loadData(previousData: previousData)
 
