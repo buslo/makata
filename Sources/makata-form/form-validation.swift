@@ -26,18 +26,26 @@ public struct FormValidation<Shape> {
         for path: KeyPath<Shape, Value>,
         are fields: FieldValidator<Shape, Value>...
     ) -> Self {
+        if validationsDict[path] != nil {
+            fatalError("Appending additional validations for path not allowed.")
+        }
+        
         var newDict = validationsDict
         newDict[path] = { shape in
             var fieldErrors = [Error]()
-
-            fields.forEach { field in
+            
+            for field in fields {
                 do {
                     try field.validate(shape, shape[keyPath: path])
                 } catch {
                     fieldErrors.append(error)
+                    
+                    if !field.propagates {
+                        break
+                    }
                 }
             }
-
+            
             return fieldErrors
         }
 
