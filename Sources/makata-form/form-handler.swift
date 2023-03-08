@@ -52,7 +52,6 @@ public class FormHandler<Shape> {
         do {
             try await callback(current)
             submitErrors = nil
-            await pushUpdates()
         } catch {
             submitErrors = error
             await pushUpdates()
