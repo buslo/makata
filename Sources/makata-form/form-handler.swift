@@ -15,6 +15,12 @@ public class FormHandler<Shape> {
         public let isValid: Bool
         public let isSubmitInvoked: Bool
 
+        public var isSubmitFailed: Bool {
+            submitErrors != nil
+        }
+        
+        public let submitErrors: Error?
+
         public let validationResult: FormValidation<Shape>.Result
     }
 
@@ -23,6 +29,8 @@ public class FormHandler<Shape> {
     public var current: Shape
 
     var submitInvoked: Bool
+    var submitErrors: Error?
+    
     var updateHandler: UpdatesHandler = { _, _ async in }
 
     var validations: FormValidation<Shape>?
@@ -41,9 +49,19 @@ public class FormHandler<Shape> {
             throw Errors.invalid(errors)
         }
 
-        try await callback(current)
+        do {
+            try await callback(current)
+            submitErrors = nil
+            await pushUpdates()
+        } catch {
+            submitErrors = error
+            await pushUpdates()
+            
+            throw error
+        }
     }
 
+    @discardableResult
     func pushUpdates() async -> FormValidation<Shape>.Result {
         let result = validations?.validate(current) ?? .noErrors
         await updateHandler(
@@ -51,6 +69,7 @@ public class FormHandler<Shape> {
             .init(
                 isValid: result.fields.isEmpty,
                 isSubmitInvoked: submitInvoked,
+                submitErrors: submitErrors,
                 validationResult: result
             )
         )
