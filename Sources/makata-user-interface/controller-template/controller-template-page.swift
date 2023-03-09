@@ -6,6 +6,7 @@
 import Foundation
 import SnapKit
 import UIKit
+import Combine
 
 public extension Templates {
     final class Page: UIView, HasHeader {
@@ -35,6 +36,9 @@ public extension Templates {
             return layoutGuide
         }()
 
+        var keyboardEvents = Set<AnyCancellable>()
+        var keyboardInsets = UIEdgeInsets.zero
+        
         public init(
             frame: CGRect,
             header: __owned UIView & ViewHeader,
@@ -63,6 +67,7 @@ public extension Templates {
                     .equalTo(1 / UIScreen.main.scale)
             }
             
+            setupKeyboardEvents()
             setupHeaderLayout()
             setupFooterLayout()
             setupContentLayout()
@@ -105,6 +110,73 @@ public extension Templates {
             // Explicitly set content offset to mitigate bug that
             // makes the content go under the header.
             contentContainerView.contentOffset = .init(x: 0, y: -contentContainerView.contentInset.top)
+        }
+        
+        func setupKeyboardEvents() {
+            NotificationCenter.default
+                .publisher(for: UIApplication.keyboardWillShowNotification)
+                .sink { [unowned self] notif in
+                    guard let duration = notif
+                        .userInfo?[UIApplication.keyboardAnimationDurationUserInfoKey] as? NSNumber else {
+                        return
+                    }
+                    
+                    guard let curve = notif
+                        .userInfo?[UIApplication.keyboardAnimationCurveUserInfoKey] as? NSNumber else {
+                        return
+                    }
+                    
+                    guard let frame = notif
+                        .userInfo?[UIApplication.keyboardFrameEndUserInfoKey] as? NSValue else {
+                        return
+                    }
+                    
+                    switch keyboardInsetBehavior {
+                    case .normal:
+                        keyboardInsets = .init(
+                            top: 0,
+                            left: 0,
+                            bottom: frame.cgRectValue.height,
+                            right: 0
+                        )
+                    case .ignore:
+                        keyboardInsets = .zero
+                    }
+                    
+                    UIView.animate(
+                        withDuration: duration.doubleValue,
+                        delay: 0,
+                        options: UIView.AnimationOptions(rawValue: curve.uintValue << 16)
+                    ) { [unowned self] in
+                        layoutIfNeeded()
+                    }
+                }
+                .store(in: &keyboardEvents)
+            
+            NotificationCenter.default
+                .publisher(for: UIApplication.keyboardWillHideNotification)
+                .sink { [unowned self] notif in
+                    guard let duration = notif
+                        .userInfo?[UIApplication.keyboardAnimationDurationUserInfoKey] as? NSNumber else {
+                        return
+                    }
+                    
+                    guard let curve = notif
+                        .userInfo?[UIApplication.keyboardAnimationCurveUserInfoKey] as? NSNumber else {
+                        return
+                    }
+                    
+                    keyboardInsets = .zero
+                    
+                    UIView.animate(
+                        withDuration: duration.doubleValue,
+                        delay: 0,
+                        options: UIView.AnimationOptions(rawValue: curve.uintValue << 16)
+                    ) { [unowned self] in
+                        layoutIfNeeded()
+                    }
+                }
+                .store(in: &keyboardEvents)
         }
         
         func setupHeaderLayout() {
@@ -158,10 +230,12 @@ public extension Templates {
                     width: footerSize.width,
                     height: footerSize.height + safeAreaInsets.bottom
                 )
-            )
+            ).inset(by: keyboardInsets)
         }
         
         func setupContentLayout() {
+            let bottomInset = keyboardInsets.bottom > 0 ? 0 : safeAreaInsets.bottom
+            
             let headerHeight = headerView!.systemLayoutSizeFitting(
                 .init(
                     width: bounds.width,
@@ -178,7 +252,7 @@ public extension Templates {
                 ),
                 withHorizontalFittingPriority: .required,
                 verticalFittingPriority: .fittingSizeLevel
-            ).height ?? 0 + safeAreaInsets.bottom
+            ).height ?? 0 + bottomInset
             
             if let contentView {
                 let contentSize = contentView.systemLayoutSizeFitting(
@@ -194,7 +268,7 @@ public extension Templates {
                 contentContainerView.contentSize = finalContentSize
             }
 
-            contentContainerView.frame = bounds
+            contentContainerView.frame = bounds.inset(by: keyboardInsets)
             contentContainerView.contentInset = .init(
                 top: ceil(headerHeight),
                 left: 0,
@@ -204,7 +278,7 @@ public extension Templates {
             contentContainerView.scrollIndicatorInsets = .init(
                 top: ceil(headerHeight - safeAreaInsets.top),
                 left: 0,
-                bottom: ceil(footerHeight - safeAreaInsets.bottom),
+                bottom: ceil(footerHeight - bottomInset),
                 right: 0
             )
         }
