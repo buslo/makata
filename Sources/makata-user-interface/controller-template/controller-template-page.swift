@@ -37,7 +37,11 @@ public extension Templates {
         }()
 
         var keyboardEvents = Set<AnyCancellable>()
-        var keyboardInsets = UIEdgeInsets.zero
+        var keyboardInsets = UIEdgeInsets.zero {
+            didSet {
+                setNeedsLayout()
+            }
+        }
         
         public init(
             frame: CGRect,
