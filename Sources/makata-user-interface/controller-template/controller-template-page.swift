@@ -266,8 +266,8 @@ public extension Templates {
                 )
 
                 let contentHeight = max(
-                    bounds.height - (headerHeight + footerHeight + 1),
-                    contentSize.height - keyboardInsets.bottom
+                    bounds.height - (headerHeight + footerHeight + 1 + keyboardInsets.bottom),
+                    contentSize.height
                 )
 
                 let finalContentSize = CGSize(width: bounds.width, height: contentHeight)
