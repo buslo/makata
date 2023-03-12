@@ -14,6 +14,13 @@ public protocol ConstraintBuildable: AnyObject { }
 extension UIView: ConstraintBuildable { }
 
 public extension ConstraintBuildable where Self: UIView {
+    @discardableResult
+    func addSubview(_ viewWithConstraints: ConstructedViewWithConstraints<Self>) -> Self {
+        addSubview(view: viewWithConstraints.view, constraints: viewWithConstraints.constraint)
+        
+        return self
+    }
+    
     func defineConstraints(_ make: @escaping (ConstraintMaker) -> Void) -> ConstructedViewWithConstraints<Self> {
         .init(view: self, constraint: make)
     }
