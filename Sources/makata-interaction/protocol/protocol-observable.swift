@@ -53,7 +53,7 @@ public extension Observable {
         }
 
         public func cancel() {
-            observable.subscriptions.removeAll(where: Subscription.equal(source: self))
+            observable?.subscriptions.removeAll(where: Subscription.equal(source: self))
         }
     }
 
