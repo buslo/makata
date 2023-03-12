@@ -104,21 +104,23 @@ public extension UIView {
         var lastReferences: [UIView] = []
         
         lifetime = observer.projectedValue.subscribe { [unowned self] value in
-            for reference in lastReferences {
-                reference.removeFromSuperview()
-            }
-
-            switch update(value) {
-            case let .single(view, maker):
-                addSubview(view: view, constraints: maker)
-                lastReferences = [view]
-                
-            case let .result(views):
-                for (view, maker) in views {
-                    addSubview(view: view, constraints: maker)
+            DispatchQueue.main.async {
+                for reference in lastReferences {
+                    reference.removeFromSuperview()
                 }
-                
-                lastReferences = views.map { $0.0 }
+
+                switch update(value) {
+                case let .single(view, maker):
+                    addSubview(view: view, constraints: maker)
+                    lastReferences = [view]
+                    
+                case let .result(views):
+                    for (view, maker) in views {
+                        addSubview(view: view, constraints: maker)
+                    }
+                    
+                    lastReferences = views.map { $0.0 }
+                }
             }
         }
         
@@ -215,16 +217,27 @@ public extension UIStackView {
         
         stack.setContentHuggingPriority(.required, for: .vertical)
         
+        var lastReferences = [UIView]()
+        
         lifetime = observable.subscribe { [unowned stack] value in
-            switch components(value) {
-            case let .single(view, maker):
-                stack.addArrangedSubview(view)
-                view.snp.makeConstraints(maker)
+            DispatchQueue.main.async {
+                lastReferences.forEach {
+                    $0.removeFromSuperview()
+                }
                 
-            case let .result(views):
-                for (view, maker) in views {
+                switch components(value) {
+                case let .single(view, maker):
                     stack.addArrangedSubview(view)
                     view.snp.makeConstraints(maker)
+                    
+                    lastReferences = [ view ]
+                case let .result(views):
+                    for (view, maker) in views {
+                        stack.addArrangedSubview(view)
+                        view.snp.makeConstraints(maker)
+                    }
+                    
+                    lastReferences = views.map { $0.0 }
                 }
             }
         }
@@ -249,16 +262,27 @@ public extension UIStackView {
         
         stack.setContentHuggingPriority(.required, for: .vertical)
         
+        var lastReferences = [UIView]()
+        
         lifetime = observable.subscribe { [unowned stack] value in
-            switch components(value) {
-            case let .single(view, maker):
-                stack.addArrangedSubview(view)
-                view.snp.makeConstraints(maker)
+            DispatchQueue.main.async {
+                lastReferences.forEach {
+                    $0.removeFromSuperview()
+                }
                 
-            case let .result(views):
-                for (view, maker) in views {
+                switch components(value) {
+                case let .single(view, maker):
                     stack.addArrangedSubview(view)
                     view.snp.makeConstraints(maker)
+                    
+                    lastReferences = [ view ]
+                case let .result(views):
+                    for (view, maker) in views {
+                        stack.addArrangedSubview(view)
+                        view.snp.makeConstraints(maker)
+                    }
+                    
+                    lastReferences = views.map { $0.0 }
                 }
             }
         }
