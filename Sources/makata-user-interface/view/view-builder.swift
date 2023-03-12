@@ -11,17 +11,27 @@
 //
 import Foundation
 import UIKit
+import SnapKit
 
 @resultBuilder
 public enum ComponentBuilder {
-    public typealias Component = [UIView]
+    public enum Component {
+        case single(UIView, (ConstraintMaker) -> Void)
+        case result([(UIView, (ConstraintMaker) -> Void)])
+    }
 
     public static func buildExpression(_ expression: some UIView) -> Component {
-        [expression]
+        .single(expression) { _ in
+            
+        }
+    }
+    
+    public static func buildExpression(_ expression: ConstructedViewWithConstraints<some UIView>) -> Component {
+        .single(expression.view, expression.constraint)
     }
 
     public static func buildExpression(_ expression: [UIView]) -> Component {
-        expression
+        .result(expression.map { ($0, { _ in }) })
     }
 
     public static func buildEither(first component: ComponentBuilder.Component) -> ComponentBuilder.Component {
@@ -33,14 +43,36 @@ public enum ComponentBuilder {
     }
 
     public static func buildOptional(_ component: ComponentBuilder.Component?) -> ComponentBuilder.Component {
-        component ?? []
+        component ?? .result([])
     }
 
     public static func buildArray(_ components: [ComponentBuilder.Component]) -> ComponentBuilder.Component {
-        components.flatMap { $0 }
+        var items = [(UIView, (ConstraintMaker) -> Void)]()
+        
+        for component in components {
+            switch component {
+            case .single(let view, let maker):
+                items.append((view, maker))
+            case .result(let existing):
+                items.append(contentsOf: existing)
+            }
+        }
+        
+        return .result(items)
     }
 
     public static func buildBlock(_ components: Component...) -> Component {
-        components.flatMap { $0 }
+        var items = [(UIView, (ConstraintMaker) -> Void)]()
+        
+        for component in components {
+            switch component {
+            case .single(let view, let maker):
+                items.append((view, maker))
+            case .result(let existing):
+                items.append(contentsOf: existing)
+            }
+        }
+        
+        return .result(items)
     }
 }

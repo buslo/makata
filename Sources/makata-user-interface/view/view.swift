@@ -84,7 +84,7 @@ public extension UIView {
 
         return self
     }
-
+    
     @discardableResult
     func addSubview(view: some UIView, constraints: (ConstraintMaker) -> Void) -> Self {
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -92,6 +92,36 @@ public extension UIView {
 
         view.snp.makeConstraints(constraints)
 
+        return self
+    }
+    
+    @discardableResult
+    func renderSubviews<Value>(
+        from observer: Observable<Value>,
+        _ lifetime: inout Lifetimeable?,
+        @ComponentBuilder _ update: @escaping (Value) -> ComponentBuilder.Component
+    ) -> Self {
+        var lastReferences: [UIView] = []
+        
+        lifetime = observer.projectedValue.subscribe { [unowned self] value in
+            for reference in lastReferences {
+                reference.removeFromSuperview()
+            }
+
+            switch update(value) {
+            case let .single(view, maker):
+                addSubview(view: view, constraints: maker)
+                lastReferences = [view]
+                
+            case let .result(views):
+                for (view, maker) in views {
+                    addSubview(view: view, constraints: maker)
+                }
+                
+                lastReferences = views.map { $0.0 }
+            }
+        }
+        
         return self
     }
 }
@@ -112,8 +142,18 @@ public extension UIStackView {
 
         stack.setContentHuggingPriority(.required, for: .vertical)
 
-        components().forEach(stack.addArrangedSubview)
-
+        switch components() {
+        case let .single(view, maker):
+            stack.addArrangedSubview(view)
+            view.snp.makeConstraints(maker)
+            
+        case let .result(views):
+            for (view, maker) in views {
+                stack.addArrangedSubview(view)
+                view.snp.makeConstraints(maker)
+            }
+        }
+        
         return stack
     }
 
@@ -132,8 +172,18 @@ public extension UIStackView {
 
         stack.setContentHuggingPriority(.required, for: .vertical)
 
-        components().forEach(stack.addArrangedSubview)
-
+        switch components() {
+        case let .single(view, maker):
+            stack.addArrangedSubview(view)
+            view.snp.makeConstraints(maker)
+            
+        case let .result(views):
+            for (view, maker) in views {
+                stack.addArrangedSubview(view)
+                view.snp.makeConstraints(maker)
+            }
+        }
+        
         return stack
     }
 
@@ -152,7 +202,19 @@ public extension UIStackView {
         self.distribution = distribution
         insetsLayoutMarginsFromSafeArea = false
 
-        components().forEach(addArrangedSubview)
+        switch components() {
+        case let .single(view, maker):
+            addArrangedSubview(view)
+            view.snp.makeConstraints(maker)
+            
+        case let .result(views):
+            for (view, maker) in views {
+                addArrangedSubview(view)
+                view.snp.makeConstraints(maker)
+            }
+        }
+        
+        setContentHuggingPriority(.required, for: .vertical)
     }
 
     @discardableResult
