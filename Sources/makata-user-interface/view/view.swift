@@ -187,36 +187,6 @@ public extension UIStackView {
         return stack
     }
 
-    convenience init(
-        axis: NSLayoutConstraint.Axis,
-        spacing: CGFloat = 8,
-        alignment: UIStackView.Alignment = .leading,
-        distribution: UIStackView.Distribution = .fill,
-        @ComponentBuilder components: () -> ComponentBuilder.Component
-    ) {
-        self.init(frame: .zero)
-
-        self.axis = axis
-        self.spacing = spacing
-        self.alignment = alignment
-        self.distribution = distribution
-        insetsLayoutMarginsFromSafeArea = false
-
-        switch components() {
-        case let .single(view, maker):
-            addArrangedSubview(view)
-            view.snp.makeConstraints(maker)
-            
-        case let .result(views):
-            for (view, maker) in views {
-                addArrangedSubview(view)
-                view.snp.makeConstraints(maker)
-            }
-        }
-        
-        setContentHuggingPriority(.required, for: .vertical)
-    }
-
     @discardableResult
     func margins(_ insets: UIEdgeInsets, relativeToSafeArea: Bool = false) -> Self {
         isLayoutMarginsRelativeArrangement = true
@@ -224,5 +194,75 @@ public extension UIStackView {
         layoutMargins = insets
 
         return self
+    }
+}
+
+public extension UIStackView {
+    static func renderHorizontal<Value>(
+        from observable: Observable<Value>.Projection,
+        _ lifetime: inout Lifetimeable?,
+        spacing: CGFloat = 8,
+        alignment: UIStackView.Alignment = .leading,
+        distribution: UIStackView.Distribution = .fill,
+        @ComponentBuilder components: @escaping (Value) -> ComponentBuilder.Component
+    ) -> Self {
+        let stack = Self(frame: .zero)
+        stack.axis = .horizontal
+        stack.spacing = spacing
+        stack.alignment = alignment
+        stack.distribution = distribution
+        stack.insetsLayoutMarginsFromSafeArea = false
+        
+        stack.setContentHuggingPriority(.required, for: .vertical)
+        
+        lifetime = observable.subscribe { [unowned stack] value in
+            switch components(value) {
+            case let .single(view, maker):
+                stack.addArrangedSubview(view)
+                view.snp.makeConstraints(maker)
+                
+            case let .result(views):
+                for (view, maker) in views {
+                    stack.addArrangedSubview(view)
+                    view.snp.makeConstraints(maker)
+                }
+            }
+        }
+        
+        return stack
+    }
+    
+    static func renderVertical<Value>(
+        from observable: Observable<Value>.Projection,
+        _ lifetime: inout Lifetimeable?,
+        spacing: CGFloat = 8,
+        alignment: UIStackView.Alignment = .leading,
+        distribution: UIStackView.Distribution = .fill,
+        @ComponentBuilder components: @escaping (Value) -> ComponentBuilder.Component
+    ) -> Self {
+        let stack = Self(frame: .zero)
+        stack.axis = .vertical
+        stack.spacing = spacing
+        stack.alignment = alignment
+        stack.distribution = distribution
+        stack.insetsLayoutMarginsFromSafeArea = false
+        
+        stack.setContentHuggingPriority(.required, for: .vertical)
+        
+        lifetime = observable.subscribe { [unowned stack] value in
+            switch components(value) {
+            case let .single(view, maker):
+                stack.addArrangedSubview(view)
+                view.snp.makeConstraints(maker)
+                
+            case let .result(views):
+                for (view, maker) in views {
+                    stack.addArrangedSubview(view)
+                    view.snp.makeConstraints(maker)
+                }
+            }
+        }
+        
+        return stack
     }
 }
