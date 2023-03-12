@@ -99,7 +99,7 @@ public extension UIView {
     func renderSubviews<Value>(
         from observer: Observable<Value>,
         _ lifetime: inout Lifetimeable?,
-        @ComponentBuilder _ update: @escaping (Value) -> ComponentBuilder.Component
+        @ComponentBuilder _ update: @escaping @MainActor (Value) -> ComponentBuilder.Component
     ) -> Self {
         var lastReferences: [UIView] = []
         
@@ -204,7 +204,7 @@ public extension UIStackView {
         spacing: CGFloat = 8,
         alignment: UIStackView.Alignment = .leading,
         distribution: UIStackView.Distribution = .fill,
-        @ComponentBuilder components: @escaping (Value) -> ComponentBuilder.Component
+        @ComponentBuilder components: @escaping @MainActor (Value) -> ComponentBuilder.Component
     ) -> Self {
         let stack = Self(frame: .zero)
         stack.axis = .horizontal
@@ -238,7 +238,7 @@ public extension UIStackView {
         spacing: CGFloat = 8,
         alignment: UIStackView.Alignment = .leading,
         distribution: UIStackView.Distribution = .fill,
-        @ComponentBuilder components: @escaping (Value) -> ComponentBuilder.Component
+        @ComponentBuilder components: @escaping @MainActor (Value) -> ComponentBuilder.Component
     ) -> Self {
         let stack = Self(frame: .zero)
         stack.axis = .vertical
