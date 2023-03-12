@@ -24,7 +24,7 @@ public class StateHandler<State> {
 
     var provider: Provider = { _ in }
 
-    public var current: State
+    @Observable public var current: State
 
     public init(initial: State) {
         current = initial
