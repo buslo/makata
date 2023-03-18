@@ -21,7 +21,15 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
     
     open var backAction: UIAction {
         .init { [unowned self] _ in
-            navigationController?.popViewController(animated: true)
+            guard let navigationController else {
+                return
+            }
+            
+            if navigationController.topViewController == self {
+                navigationController.dismiss(animated: true)
+            } else {
+                navigationController.popViewController(animated: true)
+            }
         }
     }
 
