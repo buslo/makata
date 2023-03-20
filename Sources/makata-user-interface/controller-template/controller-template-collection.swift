@@ -380,9 +380,11 @@ extension Templates.Collection {
 
 public extension Templates.CollectionContentRect {
     func interpolate(from input: ClosedRange<CGFloat>, mapsTo output: ClosedRange<CGFloat>) -> (_ value: CGFloat) -> CGFloat {
+        let length = (input.upperBound - input.lowerBound)
+        
         return { value in
-            let ratio = (value - input.lowerBound) / (input.upperBound - input.lowerBound)
-            return output.lowerBound + output.upperBound * ratio
+            let ratio = (value - input.lowerBound) / length
+            return min(output.upperBound, max(output.lowerBound, output.lowerBound + output.upperBound * ratio))
         }
     }
 }
