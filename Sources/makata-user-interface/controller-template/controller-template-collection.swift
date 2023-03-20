@@ -10,9 +10,22 @@ public protocol CollectionDelegate: AnyObject {
     associatedtype DelegateItemType: Hashable
 
     @MainActor func collectionItemSelected(at indexPath: IndexPath, _ item: DelegateItemType) async
+    
+    @MainActor func collectionContentRectChanged(_ rect: Templates.CollectionContentRect)
+}
+
+public extension CollectionDelegate {
+    func collectionContentRectChanged(_ rect: Templates.CollectionContentRect) {
+        
+    }
 }
 
 public extension Templates {
+    struct CollectionContentRect {
+        public let offset: CGPoint
+        public let size: CGSize
+    }
+    
     final class Collection<S: Hashable, E: Hashable>: UIView, HasHeader {
         public typealias SectionLayout = (__shared DataSource, Int, S) -> NSCollectionLayoutSection
 
@@ -317,6 +330,8 @@ extension Templates.Collection {
         typealias DataSource<Section: Hashable> = UICollectionViewDiffableDataSource<Section, E>
 
         var itemSelected: (IndexPath) -> Void = { _ in }
+        
+        var contentRectChanged: (Templates.CollectionContentRect) -> Void = { _ in }
 
         func setupDelegate<D: CollectionDelegate>(
             delegate: D,
@@ -326,6 +341,10 @@ extension Templates.Collection {
                 Task(priority: .high) { @MainActor [unowned delegate, unowned dataSource] () in
                     await delegate.collectionItemSelected(at: ip, dataSource.itemIdentifier(for: ip)!)
                 }
+            }
+            
+            contentRectChanged = { [unowned delegate] rect in
+                delegate.collectionContentRectChanged(rect)
             }
         }
 
@@ -345,6 +364,8 @@ extension Templates.Collection {
                     header.displayUpdate(ypos >= 1)
                 }
             }
+            
+            contentRectChanged(.init(offset: scrollView.contentOffset, size: scrollView.contentSize))
         }
     }
 }
