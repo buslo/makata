@@ -23,6 +23,8 @@ public extension CollectionDelegate {
 public extension Templates {
     struct CollectionContentRect {
         public let offset: CGPoint
+        public let offsetAdjusted: CGPoint
+        
         public let size: CGSize
     }
     
@@ -365,7 +367,22 @@ extension Templates.Collection {
                 }
             }
             
-            contentRectChanged(.init(offset: scrollView.contentOffset, size: scrollView.contentSize))
+            contentRectChanged(
+                .init(
+                    offset: scrollView.contentOffset,
+                    offsetAdjusted: .init(x: 0, y: ypos),
+                    size: scrollView.contentSize
+                )
+            )
+        }
+    }
+}
+
+public extension Templates.CollectionContentRect {
+    func interpolate(from input: ClosedRange<CGFloat>, mapsTo output: ClosedRange<CGFloat>) -> (_ value: CGFloat) -> CGFloat {
+        return { value in
+            let ratio = (value - input.lowerBound) / (input.upperBound - input.lowerBound)
+            return output.lowerBound + output.upperBound * ratio
         }
     }
 }
