@@ -46,7 +46,7 @@ public extension Templates {
             header: __owned (UIView & ViewHeader)? = nil,
             footer: __owned UIView? = nil,
             source: (__shared UICollectionView) -> DataSource,
-            layout: @escaping SectionLayout
+            layout: (_ dataSource: DataSource) -> UICollectionViewCompositionalLayout
         ) {
             headerView = header
             
@@ -91,7 +91,9 @@ public extension Templates {
                     .equalToSuperview()
             }
 
-            let configuration = UICollectionViewCompositionalLayoutConfiguration()
+            let collectionLayout = layout(source)
+
+            let configuration = collectionLayout.configuration
             configuration.contentInsetsReference = .layoutMargins
 
             if header != nil {
@@ -124,18 +126,33 @@ public extension Templates {
                 configuration.boundarySupplementaryItems.append(footerSupplementaryItem)
             }
 
-            collectionView.setCollectionViewLayout(
-                UICollectionViewCompositionalLayout(sectionProvider: { section, _ in
-                    guard let sectionKind = source.sectionIdentifier(for: section) else {
-                        fatalError()
-                    }
+            collectionLayout.configuration = configuration
 
-                    return layout(source, section, sectionKind)
-                }, configuration: configuration),
-                animated: false
-            )
+            collectionView.setCollectionViewLayout(collectionLayout, animated: false)
 
             self.collectionView = collectionView
+        }
+
+        public convenience init(
+            frame: CGRect,
+            header: __owned (UIView & ViewHeader)? = nil,
+            footer: __owned UIView? = nil,
+            source: (__shared UICollectionView) -> DataSource,
+            layout: @escaping SectionLayout
+        ) {
+            self.init(
+                frame: frame,
+                header: header,
+                footer: footer,
+                source: source) { source in
+                    UICollectionViewCompositionalLayout(sectionProvider: { [unowned source] section, _ in
+                        guard let sectionKind = source.sectionIdentifier(for: section) else {
+                            fatalError()
+                        }
+                        
+                        return layout(source, section, sectionKind)
+                    })
+                }
         }
 
         @available(*, unavailable)
