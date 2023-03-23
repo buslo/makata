@@ -35,6 +35,13 @@ public extension Templates {
 
             return layoutGuide
         }()
+        
+        public var headerAlwaysBlurry = false {
+            didSet {
+                setNeedsLayout()
+                scrollViewDidScroll(contentContainerView)
+            }
+        }
 
         var keyboardEvents = Set<AnyCancellable>()
         var keyboardInsets = UIEdgeInsets.zero {
@@ -296,7 +303,12 @@ public extension Templates {
 extension Templates.Page: UIScrollViewDelegate {
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let headerHeight = safeAreaInsets.top + headerView!.bounds.height
-        headerVisualEffectView.isHidden = (headerHeight + scrollView.contentOffset.y) <= 0
+        
+        if headerAlwaysBlurry {
+            headerVisualEffectView.isHidden = false
+        } else {
+            headerVisualEffectView.isHidden = (headerHeight + scrollView.contentOffset.y) <= 0
+        }
     }
 }
 
