@@ -97,14 +97,14 @@ public extension UIView {
     
     @discardableResult
     func renderSubviews<Value>(
-        from observer: Observable<Value>,
+        from observer: Observable<Value>.Projection,
         _ lifetime: inout Lifetimeable?,
         @ComponentBuilder _ update: @escaping @MainActor (Value) -> ComponentBuilder.Component
     ) -> Self {
         var lastReferences: [UIView] = []
-        
-        lifetime = observer.projectedValue.subscribe { [unowned self] value in
-            DispatchQueue.main.async {
+
+        lifetime = observer.subscribe { value in
+            DispatchQueue.main.async { [unowned self] in
                 for reference in lastReferences {
                     reference.removeFromSuperview()
                 }
