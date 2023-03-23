@@ -25,7 +25,7 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
                 return
             }
             
-            if navigationController.topViewController == self {
+            if navigationController.viewControllers.count == 1 && navigationController.topViewController == self {
                 navigationController.dismiss(animated: true)
             } else {
                 navigationController.popViewController(animated: true)
