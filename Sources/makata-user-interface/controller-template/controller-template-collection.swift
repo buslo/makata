@@ -92,9 +92,7 @@ public extension Templates {
             }
 
             let collectionLayout = layout(source)
-
             let configuration = collectionLayout.configuration
-            configuration.contentInsetsReference = .layoutMargins
 
             if header != nil {
                 let headerSupplementaryItem = NSCollectionLayoutBoundarySupplementaryItem(
