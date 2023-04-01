@@ -14,9 +14,10 @@ public extension Templates {
             case normal
             case ignore
         }
-        
+
         weak var headerVisualEffectView: UIVisualEffectView!
-        
+        weak var headerBorderView: UIView!
+
         public private(set) weak var headerView: (UIView & ViewHeader)?
         public private(set) weak var footerView: UIView?
         
@@ -40,6 +41,12 @@ public extension Templates {
             didSet {
                 setNeedsLayout()
                 scrollViewDidScroll(contentContainerView)
+            }
+        }
+        
+        public var showHairlineBorder = true {
+            didSet {
+                setNeedsLayout()
             }
         }
 
@@ -69,14 +76,20 @@ public extension Templates {
             addSubview(UIScrollView().assign(to: &contentContainerView))
             addSubview(UIVisualEffectView(effect: UIBlurEffect(style: .regular)).assign(to: &headerVisualEffectView))
             
-            headerVisualEffectView.contentView.addSubview(view: UIView().backgroundColor(.separator)) { make in
-                make.horizontalEdges
-                    .bottom
-                    .equalToSuperview()
-                
-                make.height
-                    .equalTo(1 / UIScreen.main.scale)
-            }
+            headerVisualEffectView.contentView
+                .addSubview(
+                    UIView()
+                        .backgroundColor(.separator)
+                        .assign(to: &headerBorderView)
+                        .defineConstraints  { make in
+                            make.horizontalEdges
+                                .bottom
+                                .equalToSuperview()
+                            
+                            make.height
+                                .equalTo(1 / UIScreen.main.scale)
+                        }
+                )
             
             setupKeyboardEvents()
             setupHeaderLayout()
@@ -211,7 +224,9 @@ public extension Templates {
                     height: headerSize.height
                 )
             )
-            
+
+            headerBorderView.isHidden = !showHairlineBorder
+
             headerVisualEffectView.frame = .init(
                 origin: .init(
                     x: 0,

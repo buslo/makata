@@ -38,6 +38,15 @@ public extension Templates {
         public private(set) weak var headerView: (UIView & ViewHeader)?
 
         public private(set) weak var collectionView: UICollectionView!
+        
+        public var showHairlineBorder = true {
+            didSet {
+                let invalidationContext = UICollectionViewLayoutInvalidationContext()
+                invalidationContext.invalidateSupplementaryElements(ofKind: CollectionHeaderElementType, at: [ .init(row: 0, section: 0) ])
+
+                collectionView.collectionViewLayout.invalidateLayout(with: invalidationContext)
+            }
+        }
 
         let delegate = DelegateProxy<E>()
 
@@ -67,12 +76,13 @@ public extension Templates {
 
             let initialSupplementaryProvider = source.supplementaryViewProvider
 
-            source.supplementaryViewProvider = { cv, ek, ip in
+            source.supplementaryViewProvider = { [unowned self] cv, ek, ip in
                 switch ek {
                 case CollectionHeaderElementType:
                     return cv
                         .dequeueConfiguredReusableSupplementary(using: headerRegistration, for: ip)
                         .setContainingView(header!)
+                        .attribute(on: \.border!.isHidden, !showHairlineBorder)
                 case CollectionFooterElementType:
                     return cv
                         .dequeueConfiguredReusableSupplementary(using: footerRegistration, for: ip)
