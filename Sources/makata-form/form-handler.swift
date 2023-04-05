@@ -35,6 +35,8 @@ public class FormHandler<Shape> {
     var updateHandler: UpdatesHandler = { _, _ async in }
 
     var validations: FormValidation<Shape>?
+    
+    var observations: FormObserver<Shape>?
 
     public init(initial: Shape, submitInvoked: Bool = false) {
         self.current = initial
@@ -96,6 +98,13 @@ public extension FormHandler {
 
         return self
     }
+    
+    @discardableResult
+    func setObserverHandler(_ handler: FormObserver<Shape>?) -> Self {
+        observations = handler
+        
+        return self
+    }
 }
 
 public extension FormHandler {
@@ -105,6 +114,11 @@ public extension FormHandler {
         }
         set {
             current[keyPath: member] = newValue
+            
+            if let observations, let action = observations.observationDict[member] {
+                action(newValue)
+            }
+            
             Task { @MainActor () in await pushUpdates() }
         }
     }
