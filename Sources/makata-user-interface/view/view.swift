@@ -8,6 +8,8 @@ import makataInteraction
 import SnapKit
 import UIKit
 
+public var DefaultStackSpacing = CGFloat(8)
+
 extension UIView: Assignable, Attributable, Withable {}
 
 public extension UIView {
@@ -130,7 +132,7 @@ public extension UIView {
 
 public extension UIStackView {
     static func horizontal(
-        spacing: CGFloat = 8,
+        spacing: CGFloat = DefaultStackSpacing,
         alignment: UIStackView.Alignment = .leading,
         distribution: UIStackView.Distribution = .fill,
         @ComponentBuilder components: () -> ComponentBuilder.Component
@@ -160,7 +162,7 @@ public extension UIStackView {
     }
 
     static func vertical(
-        spacing: CGFloat = 8,
+        spacing: CGFloat = DefaultStackSpacing,
         alignment: UIStackView.Alignment = .leading,
         distribution: UIStackView.Distribution = .fill,
         @ComponentBuilder components: () -> ComponentBuilder.Component
@@ -203,7 +205,7 @@ public extension UIStackView {
     static func renderHorizontal<Value>(
         from observable: Observable<Value>.Projection,
         _ lifetime: inout Lifetimeable?,
-        spacing: CGFloat = 8,
+        spacing: CGFloat = DefaultStackSpacing,
         alignment: UIStackView.Alignment = .leading,
         distribution: UIStackView.Distribution = .fill,
         @ComponentBuilder components: @escaping @MainActor (Value) -> ComponentBuilder.Component
@@ -248,7 +250,7 @@ public extension UIStackView {
     static func renderVertical<Value>(
         from observable: Observable<Value>.Projection,
         _ lifetime: inout Lifetimeable?,
-        spacing: CGFloat = 8,
+        spacing: CGFloat = DefaultStackSpacing,
         alignment: UIStackView.Alignment = .leading,
         distribution: UIStackView.Distribution = .fill,
         @ComponentBuilder components: @escaping @MainActor (Value) -> ComponentBuilder.Component
