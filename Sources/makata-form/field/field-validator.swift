@@ -6,7 +6,7 @@
 import Foundation
 
 /**
- An object to define a validation constraint.
+ Object to define a validation constraint.
  
  The `FieldValidator` class is generic over a `Shape` type, which represents the shape of the form data that it will validate and a `Value` type, which represents the value of the field that will be validated. The Shape type is expected to be a `struct` and the Value type can be anything.
  
