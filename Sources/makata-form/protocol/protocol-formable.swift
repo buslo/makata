@@ -35,7 +35,8 @@ public protocol Formable: AnyObject {
 }
 
 public extension Formable {
-    /// Method exposed to submit the form.
+    /// Method to submit the form.
+    /// - remark: If there are validation errors in your form, `submitData` will not be called.
     func submit() async throws {
         try await formHandler.submit { [unowned self] shape in
             try await submitData(form: shape)

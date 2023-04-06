@@ -8,7 +8,8 @@ import Foundation
 /**
  A class that provides a generic way of handling form data.
  
- The `FormHandler` class is generic over a `Shape` type, which represents the shape of the form data that it handles. The Shape type is expected to be a `struct`, and each property of the `Shape` type represents a field in the form.
+ The `FormHandler` class is generic over a `Shape` type, which represents the shape of the form data that it handles.
+ The Shape type is expected to be a `struct`, and each property of the `Shape` type represents a field in the form.
  */
 @dynamicMemberLookup
 public class FormHandler<Shape> {

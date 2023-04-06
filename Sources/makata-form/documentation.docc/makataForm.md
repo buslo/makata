@@ -21,7 +21,7 @@ A binding is a contract from your user interface to the form handler.
 
 ### Enabling Validation
 
-Validaitons strengthen your form handling by checking if all fields satisfy validation constraints.
+Validations strengthen your form handling by checking if all fields satisfy validation constraints.
 
 - ``FormHandler/setValidationHandler(_:)``
 - ``FormValidation``
