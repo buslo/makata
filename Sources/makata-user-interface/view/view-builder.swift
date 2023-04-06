@@ -1,17 +1,11 @@
 // view-builder.swift
 //
 // Code Copyright Buslo Collective
-// Created 2/3/23
+// Created 3/12/23
 
-//
-//  File.swift
-//
-//
-//  Created by Michael Ong on 2/3/23.
-//
 import Foundation
-import UIKit
 import SnapKit
+import UIKit
 
 @resultBuilder
 public enum ComponentBuilder {
@@ -21,11 +15,9 @@ public enum ComponentBuilder {
     }
 
     public static func buildExpression(_ expression: some UIView) -> Component {
-        .single(expression) { _ in
-            
-        }
+        .single(expression) { _ in }
     }
-    
+
     public static func buildExpression(_ expression: ConstructedViewWithConstraints<some UIView>) -> Component {
         .single(expression.view, expression.constraint)
     }
@@ -48,31 +40,31 @@ public enum ComponentBuilder {
 
     public static func buildArray(_ components: [ComponentBuilder.Component]) -> ComponentBuilder.Component {
         var items = [(UIView, (ConstraintMaker) -> Void)]()
-        
+
         for component in components {
             switch component {
-            case .single(let view, let maker):
+            case let .single(view, maker):
                 items.append((view, maker))
-            case .result(let existing):
+            case let .result(existing):
                 items.append(contentsOf: existing)
             }
         }
-        
+
         return .result(items)
     }
 
     public static func buildBlock(_ components: Component...) -> Component {
         var items = [(UIView, (ConstraintMaker) -> Void)]()
-        
+
         for component in components {
             switch component {
-            case .single(let view, let maker):
+            case let .single(view, maker):
                 items.append((view, maker))
-            case .result(let existing):
+            case let .result(existing):
                 items.append(contentsOf: existing)
             }
         }
-        
+
         return .result(items)
     }
 }

@@ -11,10 +11,13 @@ open class CollectionViewCell<ItemType>: UICollectionViewCell, CellRegisterable 
         super.init(frame: frame)
 
         contentView
-            .addSubview(view: loadView()) { make in
-                make.edges
-                    .equalToSuperview()
-            }
+            .addSubview(
+                loadView()
+                    .defineConstraints { make in
+                        make.edges
+                            .equalToSuperview()
+                    }
+            )
     }
 
     @available(*, unavailable)

@@ -18,7 +18,7 @@ let package = Package(
                 dependencies: [
                     "makataForm",
                     "makataInteraction",
-                    .product(name: "SnapKit", package: "snapkit")
+                    .product(name: "SnapKit", package: "snapkit"),
                 ],
                 path: "Sources/makata-user-interface"),
         .target(name: "makataForm",

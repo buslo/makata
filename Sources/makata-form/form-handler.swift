@@ -1,4 +1,4 @@
-// form.swift
+// form-handler.swift
 //
 // Code Copyright Buslo Collective
 // Created 2/3/23
@@ -18,7 +18,7 @@ public class FormHandler<Shape> {
         public var isSubmitFailed: Bool {
             submitErrors != nil
         }
-        
+
         public let submitErrors: Error?
 
         public let validationResult: FormValidation<Shape>.Result
@@ -30,11 +30,11 @@ public class FormHandler<Shape> {
 
     var submitInvoked: Bool
     var submitErrors: Error?
-    
+
     var updateHandler: UpdatesHandler = { _, _ async in }
 
     var validations: FormValidation<Shape>?
-    
+
     var observations: FormObserver<Shape>?
 
     public init(initial: Shape, submitInvoked: Bool = false) {
@@ -57,7 +57,7 @@ public class FormHandler<Shape> {
         } catch {
             submitErrors = error
             await pushUpdates()
-            
+
             throw error
         }
     }
@@ -74,7 +74,7 @@ public class FormHandler<Shape> {
                 validationResult: result
             )
         )
-        
+
         return result
     }
 }
@@ -97,11 +97,11 @@ public extension FormHandler {
 
         return self
     }
-    
+
     @discardableResult
     func setObserverHandler(_ handler: FormObserver<Shape>?) -> Self {
         observations = handler
-        
+
         return self
     }
 }
@@ -113,11 +113,11 @@ public extension FormHandler {
         }
         set {
             current[keyPath: member] = newValue
-            
+
             if let observations, let action = observations.observationDict[member] {
                 action(newValue)
             }
-            
+
             Task { @MainActor () in await pushUpdates() }
         }
     }

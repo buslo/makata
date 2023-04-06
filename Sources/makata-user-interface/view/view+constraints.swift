@@ -16,8 +16,9 @@ extension UIView: ConstraintBuildable { }
 public extension ConstraintBuildable where Self: UIView {
     @discardableResult
     func addSubview(_ viewWithConstraints: ConstructedViewWithConstraints<some UIView>) -> Self {
-        addSubview(view: viewWithConstraints.view, constraints: viewWithConstraints.constraint)
-        
+        addSubview(viewWithConstraints.view)
+        viewWithConstraints.view.snp.makeConstraints(viewWithConstraints.constraint)
+
         return self
     }
     

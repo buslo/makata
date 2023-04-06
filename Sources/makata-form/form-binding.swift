@@ -1,7 +1,7 @@
 // form-binding.swift
 //
 // Code Copyright Buslo Collective
-// Created 2/3/23
+// Created 2/23/23
 
 import Foundation
 
@@ -21,21 +21,6 @@ public struct Binding<Source: AnyObject, Value> {
 
         initialValue = source[keyPath: path]
     }
-
-#if swift(<5.8) // issue fixed in swift 5.8!
-    public init(
-        source: Source,
-        to path: ReferenceWritableKeyPath<Source, Value?>
-    ) {
-        action = { [unowned source] value in
-            source[keyPath: path] = value
-
-            return value
-        }
-
-        initialValue = source[keyPath: path]
-    }
-#endif
 
     public init<Out, T: FieldTransformable>(
         source: Source,
@@ -146,6 +131,23 @@ public extension Binding {
             fatalError("Are you intentionally setting incorrect data?")
         }
     }
+}
+
+public extension Binding {
+    #if swift(<5.8)
+        init(
+            source: Source,
+            to path: ReferenceWritableKeyPath<Source, Value?>
+        ) {
+            action = { [unowned source] value in
+                source[keyPath: path] = value
+
+                return value
+            }
+
+            initialValue = source[keyPath: path]
+        }
+    #endif
 }
 
 public typealias FieldPartialValueKeyPath<Source, Complete, Value> = ReferenceWritableKeyPath<

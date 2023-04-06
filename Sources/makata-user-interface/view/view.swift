@@ -8,8 +8,6 @@ import makataInteraction
 import SnapKit
 import UIKit
 
-public var DefaultStackSpacing = CGFloat(8)
-
 extension UIView: Assignable, Attributable, Withable {}
 
 public extension UIView {
@@ -26,15 +24,6 @@ public extension UIView {
         view.heightAnchor.constraint(equalToConstant: height).isActive = true
 
         return view
-    }
-
-    convenience init(
-        containing: some UIView,
-        constraints: (ConstraintMaker) -> Void = { $0.edges.equalToSuperview() }
-    ) {
-        self.init(frame: .zero)
-
-        addSubview(view: containing, constraints: constraints)
     }
 
     @discardableResult
@@ -88,16 +77,6 @@ public extension UIView {
     }
     
     @discardableResult
-    func addSubview(view: some UIView, constraints: (ConstraintMaker) -> Void) -> Self {
-        view.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(view)
-
-        view.snp.makeConstraints(constraints)
-
-        return self
-    }
-    
-    @discardableResult
     func renderSubviews<Value>(
         from observer: Observable<Value>.Projection,
         _ lifetime: inout Lifetimeable?,
@@ -113,12 +92,12 @@ public extension UIView {
 
                 switch update(value) {
                 case let .single(view, maker):
-                    addSubview(view: view, constraints: maker)
+                    addSubview(view.defineConstraints(maker))
                     lastReferences = [view]
                     
                 case let .result(views):
                     for (view, maker) in views {
-                        addSubview(view: view, constraints: maker)
+                        addSubview(view.defineConstraints(maker))
                     }
                     
                     lastReferences = views.map { $0.0 }
@@ -130,165 +109,25 @@ public extension UIView {
     }
 }
 
-public extension UIStackView {
-    static func horizontal(
-        spacing: CGFloat = DefaultStackSpacing,
-        alignment: UIStackView.Alignment = .leading,
-        distribution: UIStackView.Distribution = .fill,
-        @ComponentBuilder components: () -> ComponentBuilder.Component
-    ) -> Self {
-        let stack = Self(frame: .zero)
-        stack.axis = .horizontal
-        stack.spacing = spacing
-        stack.alignment = alignment
-        stack.distribution = distribution
-        stack.insetsLayoutMarginsFromSafeArea = false
+public extension UIView {
+    @available(*, deprecated, message: "Call addSubview with defineConstraints as the last method call in its builder chain instead.")
+    convenience init(
+        containing: some UIView,
+        constraints: (ConstraintMaker) -> Void = { $0.edges.equalToSuperview() }
+    ) {
+        self.init(frame: .zero)
 
-        stack.setContentHuggingPriority(.required, for: .vertical)
-
-        switch components() {
-        case let .single(view, maker):
-            stack.addArrangedSubview(view)
-            view.snp.makeConstraints(maker)
-            
-        case let .result(views):
-            for (view, maker) in views {
-                stack.addArrangedSubview(view)
-                view.snp.makeConstraints(maker)
-            }
-        }
-        
-        return stack
+        addSubview(view: containing, constraints: constraints)
     }
 
-    static func vertical(
-        spacing: CGFloat = DefaultStackSpacing,
-        alignment: UIStackView.Alignment = .leading,
-        distribution: UIStackView.Distribution = .fill,
-        @ComponentBuilder components: () -> ComponentBuilder.Component
-    ) -> Self {
-        let stack = Self(frame: .zero)
-        stack.axis = .vertical
-        stack.spacing = spacing
-        stack.alignment = alignment
-        stack.distribution = distribution
-        stack.insetsLayoutMarginsFromSafeArea = false
-
-        stack.setContentHuggingPriority(.required, for: .vertical)
-
-        switch components() {
-        case let .single(view, maker):
-            stack.addArrangedSubview(view)
-            view.snp.makeConstraints(maker)
-            
-        case let .result(views):
-            for (view, maker) in views {
-                stack.addArrangedSubview(view)
-                view.snp.makeConstraints(maker)
-            }
-        }
-        
-        return stack
-    }
-
+    @available(*, deprecated, message: "Call addSubview with defineConstraints as the last method call in its builder chain instead.")
     @discardableResult
-    func margins(_ insets: UIEdgeInsets, relativeToSafeArea: Bool = false) -> Self {
-        isLayoutMarginsRelativeArrangement = true
-        insetsLayoutMarginsFromSafeArea = relativeToSafeArea
-        layoutMargins = insets
+    func addSubview(view: some UIView, constraints: (ConstraintMaker) -> Void) -> Self {
+        view.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(view)
+
+        view.snp.makeConstraints(constraints)
 
         return self
-    }
-}
-
-public extension UIStackView {
-    static func renderHorizontal<Value>(
-        from observable: Observable<Value>.Projection,
-        _ lifetime: inout Lifetimeable?,
-        spacing: CGFloat = DefaultStackSpacing,
-        alignment: UIStackView.Alignment = .leading,
-        distribution: UIStackView.Distribution = .fill,
-        @ComponentBuilder components: @escaping @MainActor (Value) -> ComponentBuilder.Component
-    ) -> Self {
-        let stack = Self(frame: .zero)
-        stack.axis = .horizontal
-        stack.spacing = spacing
-        stack.alignment = alignment
-        stack.distribution = distribution
-        stack.insetsLayoutMarginsFromSafeArea = false
-        
-        stack.setContentHuggingPriority(.required, for: .vertical)
-        
-        var lastReferences = [UIView]()
-        
-        lifetime = observable.subscribe { [unowned stack] value in
-            DispatchQueue.main.async {
-                lastReferences.forEach {
-                    $0.removeFromSuperview()
-                }
-                
-                switch components(value) {
-                case let .single(view, maker):
-                    stack.addArrangedSubview(view)
-                    view.snp.makeConstraints(maker)
-                    
-                    lastReferences = [ view ]
-                case let .result(views):
-                    for (view, maker) in views {
-                        stack.addArrangedSubview(view)
-                        view.snp.makeConstraints(maker)
-                    }
-                    
-                    lastReferences = views.map { $0.0 }
-                }
-            }
-        }
-        
-        return stack
-    }
-    
-    static func renderVertical<Value>(
-        from observable: Observable<Value>.Projection,
-        _ lifetime: inout Lifetimeable?,
-        spacing: CGFloat = DefaultStackSpacing,
-        alignment: UIStackView.Alignment = .leading,
-        distribution: UIStackView.Distribution = .fill,
-        @ComponentBuilder components: @escaping @MainActor (Value) -> ComponentBuilder.Component
-    ) -> Self {
-        let stack = Self(frame: .zero)
-        stack.axis = .vertical
-        stack.spacing = spacing
-        stack.alignment = alignment
-        stack.distribution = distribution
-        stack.insetsLayoutMarginsFromSafeArea = false
-        
-        stack.setContentHuggingPriority(.required, for: .vertical)
-        
-        var lastReferences = [UIView]()
-        
-        lifetime = observable.subscribe { [unowned stack] value in
-            DispatchQueue.main.async {
-                lastReferences.forEach {
-                    $0.removeFromSuperview()
-                }
-                
-                switch components(value) {
-                case let .single(view, maker):
-                    stack.addArrangedSubview(view)
-                    view.snp.makeConstraints(maker)
-                    
-                    lastReferences = [ view ]
-                case let .result(views):
-                    for (view, maker) in views {
-                        stack.addArrangedSubview(view)
-                        view.snp.makeConstraints(maker)
-                    }
-                    
-                    lastReferences = views.map { $0.0 }
-                }
-            }
-        }
-        
-        return stack
     }
 }

@@ -10,24 +10,22 @@ public protocol CollectionDelegate: AnyObject {
     associatedtype DelegateItemType: Hashable
 
     @MainActor func collectionItemSelected(at indexPath: IndexPath, _ item: DelegateItemType) async
-    
+
     @MainActor func collectionContentRectChanged(_ rect: Templates.CollectionContentRect)
 }
 
 public extension CollectionDelegate {
-    func collectionContentRectChanged(_ rect: Templates.CollectionContentRect) {
-        
-    }
+    func collectionContentRectChanged(_: Templates.CollectionContentRect) {}
 }
 
 public extension Templates {
     struct CollectionContentRect {
         public let offset: CGPoint
         public let offsetAdjusted: CGPoint
-        
+
         public let size: CGSize
     }
-    
+
     final class Collection<S: Hashable, E: Hashable>: UIView, HasHeader {
         public typealias SectionLayout = (__shared DataSource, Int, S) -> NSCollectionLayoutSection
 
@@ -38,11 +36,14 @@ public extension Templates {
         public private(set) weak var headerView: (UIView & ViewHeader)?
 
         public private(set) weak var collectionView: UICollectionView!
-        
+
         public var showHairlineBorder = true {
             didSet {
                 let invalidationContext = UICollectionViewLayoutInvalidationContext()
-                invalidationContext.invalidateSupplementaryElements(ofKind: CollectionHeaderElementType, at: [ .init(row: 0, section: 0) ])
+                invalidationContext.invalidateSupplementaryElements(
+                    ofKind: CollectionHeaderElementType,
+                    at: [.init(row: 0, section: 0)]
+                )
 
                 collectionView.collectionViewLayout.invalidateLayout(with: invalidationContext)
             }
@@ -52,13 +53,13 @@ public extension Templates {
 
         public init(
             frame: CGRect,
-            header: __owned (UIView & ViewHeader)? = nil,
+            header: __owned(UIView & ViewHeader)? = nil,
             footer: __owned UIView? = nil,
             source: (__shared UICollectionView) -> DataSource,
             layout: (_ dataSource: DataSource) -> UICollectionViewCompositionalLayout
         ) {
             headerView = header
-            
+
             let headerRegistration = Header.Registration
             let footerRegistration = Footer.Registration
 
@@ -96,10 +97,11 @@ public extension Templates {
                 }
             }
 
-            addSubview(view: collectionView) { make in
-                make.edges
-                    .equalToSuperview()
-            }
+            addSubview(collectionView
+                .defineConstraints { make in
+                    make.edges
+                        .equalToSuperview()
+                })
 
             let collectionLayout = layout(source)
             let configuration = collectionLayout.configuration
@@ -143,7 +145,7 @@ public extension Templates {
 
         public convenience init(
             frame: CGRect,
-            header: __owned (UIView & ViewHeader)? = nil,
+            header: __owned(UIView & ViewHeader)? = nil,
             footer: __owned UIView? = nil,
             source: (__shared UICollectionView) -> DataSource,
             layout: @escaping SectionLayout
@@ -152,15 +154,16 @@ public extension Templates {
                 frame: frame,
                 header: header,
                 footer: footer,
-                source: source) { source in
-                    UICollectionViewCompositionalLayout(sectionProvider: { [unowned source] section, _ in
-                        guard let sectionKind = source.sectionIdentifier(for: section) else {
-                            fatalError()
-                        }
-                        
-                        return layout(source, section, sectionKind)
-                    })
-                }
+                source: source
+            ) { source in
+                UICollectionViewCompositionalLayout(sectionProvider: { [unowned source] section, _ in
+                    guard let sectionKind = source.sectionIdentifier(for: section) else {
+                        fatalError()
+                    }
+
+                    return layout(source, section, sectionKind)
+                })
+            }
         }
 
         @available(*, unavailable)
@@ -248,39 +251,42 @@ extension Templates.Collection {
 
         func setContainingView(_ content: UIView) -> Self {
             addSubview(
-                view: UIVisualEffectView(
-                    effect: UIBlurEffect(style: .regular)
-                )
-                .assign(to: &visualEffect)
-                .hidden()
-            ) { make in
-                make.leading
-                    .bottom
-                    .trailing
-                    .equalToSuperview()
-                make.top
-                    .equalToSuperview()
-                    .inset(-300)
-            }
-
-            addSubview(view: content) { make in
-                make.edges
-                    .equalToSuperview()
-            }
+                UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+                    .assign(to: &visualEffect)
+                    .hidden()
+                    .defineConstraints { make in
+                        make.leading
+                            .bottom
+                            .trailing
+                            .equalToSuperview()
+                        make.top
+                            .equalToSuperview()
+                            .inset(-300)
+                    }
+            )
 
             addSubview(
-                view: UIView()
+                content
+                    .defineConstraints { make in
+                        make.edges
+                            .equalToSuperview()
+                    }
+            )
+
+            addSubview(
+                UIView()
                     .backgroundColor(.separator)
                     .hidden()
                     .assign(to: &border)
-            ) { make in
-                make.horizontalEdges
-                    .bottom
-                    .equalToSuperview()
+                    .defineConstraints { make in
+                        make.horizontalEdges
+                            .bottom
+                            .equalToSuperview()
 
-                make.height
-                    .equalTo(1 / UIScreen.main.scale)
-            }
+                        make.height
+                            .equalTo(1 / UIScreen.main.scale)
+                    }
+            )
 
             traitCollectionDidChange(nil)
 
@@ -325,25 +331,27 @@ extension Templates.Collection {
 
         func setContainingView(_ content: UIView) -> Self {
             addSubview(
-                view: UIVisualEffectView(
-                    effect: UIBlurEffect(style: .regular)
-                )
-                .assign(to: &visualEffect)
-                .hidden()
-            ) { make in
-                make.leading
-                    .top
-                    .trailing
-                    .equalToSuperview()
-                make.bottom
-                    .equalToSuperview()
-                    .inset(-300)
-            }
+                UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+                    .assign(to: &visualEffect)
+                    .hidden()
+                    .defineConstraints { make in
+                        make.leading
+                            .top
+                            .trailing
+                            .equalToSuperview()
+                        make.bottom
+                            .equalToSuperview()
+                            .inset(-300)
+                    }
+            )
 
-            addSubview(view: content) { make in
-                make.edges
-                    .equalToSuperview()
-            }
+            addSubview(
+                content
+                    .defineConstraints { make in
+                        make.edges
+                            .equalToSuperview()
+                    }
+            )
 
             traitCollectionDidChange(nil)
 
@@ -357,7 +365,7 @@ extension Templates.Collection {
         typealias DataSource<Section: Hashable> = UICollectionViewDiffableDataSource<Section, E>
 
         var itemSelected: (IndexPath) -> Void = { _ in }
-        
+
         var contentRectChanged: (Templates.CollectionContentRect) -> Void = { _ in }
 
         func setupDelegate<D: CollectionDelegate>(
@@ -369,7 +377,7 @@ extension Templates.Collection {
                     await delegate.collectionItemSelected(at: ip, dataSource.itemIdentifier(for: ip)!)
                 }
             }
-            
+
             contentRectChanged = { [unowned delegate] rect in
                 delegate.collectionContentRectChanged(rect)
             }
@@ -391,7 +399,7 @@ extension Templates.Collection {
                     header.displayUpdate(ypos >= 1)
                 }
             }
-            
+
             contentRectChanged(
                 .init(
                     offset: scrollView.contentOffset,
@@ -404,9 +412,12 @@ extension Templates.Collection {
 }
 
 public extension Templates.CollectionContentRect {
-    func interpolate(from input: ClosedRange<CGFloat>, mapsTo output: ClosedRange<CGFloat>) -> (_ value: CGFloat) -> CGFloat {
+    func interpolate(
+        from input: ClosedRange<CGFloat>,
+        mapsTo output: ClosedRange<CGFloat>
+    ) -> (_ value: CGFloat) -> CGFloat {
         let length = (input.upperBound - input.lowerBound)
-        
+
         return { value in
             let ratio = (value - input.lowerBound) / length
             return min(output.upperBound, max(output.lowerBound, output.lowerBound + output.upperBound * ratio))

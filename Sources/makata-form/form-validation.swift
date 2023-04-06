@@ -29,23 +29,23 @@ public struct FormValidation<Shape> {
         if validationsDict[path] != nil {
             fatalError("Appending additional validations for path not allowed.")
         }
-        
+
         var newDict = validationsDict
         newDict[path] = { shape in
             var fieldErrors = [Error]()
-            
+
             for field in fields {
                 do {
                     try field.validate(shape, shape[keyPath: path])
                 } catch {
                     fieldErrors.append(error)
-                    
+
                     if !field.propagates {
                         break
                     }
                 }
             }
-            
+
             return fieldErrors
         }
 
@@ -94,63 +94,63 @@ public struct FormValidation<Shape> {
     }
 }
 
-extension FormValidation {
-#if swift(<5.8)
-    public func validations<Value>(
-        for path: KeyPath<Shape, Value?>,
-        are fields: FieldValidator<Shape, Value>...
-    ) -> Self {
-        var newDict = validationsDict
-        newDict[path] = { shape in
-            var fieldErrors = [Error]()
+public extension FormValidation {
+    #if swift(<5.8)
+        func validations<Value>(
+            for path: KeyPath<Shape, Value?>,
+            are fields: FieldValidator<Shape, Value>...
+        ) -> Self {
+            var newDict = validationsDict
+            newDict[path] = { shape in
+                var fieldErrors = [Error]()
 
-            fields.forEach { field in
-                do {
-                    if let value = shape[keyPath: path] {
-                        try field.validate(shape, value)
-                    } else {
-                        fatalError("Tried to validate a field that does not exist or is nil.")
-                    }
-                } catch {
-                    fieldErrors.append(error)
-                }
-            }
-
-            return fieldErrors
-        }
-
-        return .init(newDict)
-    }
-
-    public func validations<Value>(
-        for path: KeyPath<Shape, FieldPartialValue<Value, some Any>?>,
-        are fields: FieldValidator<Shape, Value>...
-    ) -> Self {
-        var newDict = validationsDict
-        newDict[path] = { shape in
-            var fieldErrors = [Error]()
-
-            fields.forEach { field in
-                do {
-                    if let value = shape[keyPath: path] {
-                        switch value {
-                        case let .complete(complete):
-                            try field.validate(shape, complete)
-                        case let .partial(_, error):
-                            throw FieldError.incomplete(error)
+                fields.forEach { field in
+                    do {
+                        if let value = shape[keyPath: path] {
+                            try field.validate(shape, value)
+                        } else {
+                            fatalError("Tried to validate a field that does not exist or is nil.")
                         }
-                    } else {
-                        fatalError("Tried to validate a field that does not exist or is nil.")
+                    } catch {
+                        fieldErrors.append(error)
                     }
-                } catch {
-                    fieldErrors.append(error)
                 }
+
+                return fieldErrors
             }
 
-            return fieldErrors
+            return .init(newDict)
         }
 
-        return .init(newDict)
-    }
-#endif
+        func validations<Value>(
+            for path: KeyPath<Shape, FieldPartialValue<Value, some Any>?>,
+            are fields: FieldValidator<Shape, Value>...
+        ) -> Self {
+            var newDict = validationsDict
+            newDict[path] = { shape in
+                var fieldErrors = [Error]()
+
+                fields.forEach { field in
+                    do {
+                        if let value = shape[keyPath: path] {
+                            switch value {
+                            case let .complete(complete):
+                                try field.validate(shape, complete)
+                            case let .partial(_, error):
+                                throw FieldError.incomplete(error)
+                            }
+                        } else {
+                            fatalError("Tried to validate a field that does not exist or is nil.")
+                        }
+                    } catch {
+                        fieldErrors.append(error)
+                    }
+                }
+
+                return fieldErrors
+            }
+
+            return .init(newDict)
+        }
+    #endif
 }

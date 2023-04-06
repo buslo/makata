@@ -12,10 +12,13 @@ open class CollectionReusableView: UICollectionReusableView, ReusableRegisterabl
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        addSubview(view: generateTemplate()) { make in
-            make.edges
-                .equalToSuperview()
-        }
+        addSubview(
+            generateTemplate()
+                .defineConstraints { make in
+                    make.edges
+                        .equalToSuperview()
+                }
+        )
     }
 
     @available(*, unavailable)
