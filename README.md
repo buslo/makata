@@ -6,7 +6,7 @@ Foundations for writing iOS apps in the least amount of time
 
 ###  **Makata Form** for handling forms
 
-```[swift]
+```swift
 struct TheForm {
     var name: String
     var email: String
@@ -43,8 +43,7 @@ class YourController {
 
 ### **Makata User Interface** for rapidly creating views:
 
-```[swift]
-
+```swift
 class YourController: Controller<YourViewModel> {
     override func loadView() {
         super.loadView()
@@ -75,13 +74,11 @@ class YourController: Controller<YourViewModel> {
         }
     }
 }
-
 ```
 
 ### **Makata Interaction** for useful utilities
 
-```[swift]
-
+```swift
 enum Routes {
     case success
     case anotherStep
@@ -134,5 +131,4 @@ class YourLoadingViewController: Controller<YourLoadingViewModel> {
         }
     }
 }
-
 ```

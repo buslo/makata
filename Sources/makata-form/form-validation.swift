@@ -5,15 +5,29 @@
 
 import Foundation
 
+/**
+ Builder object to define form field validation.
+ 
+ The `FormValidation` class is generic over a `Shape` type, which represents the shape of the form data that it will validate. The Shape type is expected to be a `struct`, and each property of the `Shape` type represents a field that would be validated.
+ */
 public struct FormValidation<Shape> {
+    
+    /**
+     The result of the validation.
+     */
     public struct Result {
+        /// Value to check if there are no validation errors produced.
         public static var noErrors: Result { Result(fields: [:]) }
 
+        /// The fields that has validation errors.
         public let fields: [PartialKeyPath<Shape>: [Error]]
     }
 
     let validationsDict: [PartialKeyPath<Shape>: (Shape) -> [Error]]
 
+    /**
+     Create a new validation builder.
+     */
     public init() {
         validationsDict = [:]
     }
@@ -22,6 +36,17 @@ public struct FormValidation<Shape> {
         validationsDict = newDict
     }
 
+    /**
+     Define validations for a field.
+     
+     - parameter path: The field path to validate.
+     - parameter fields: The constraints the validator would be using for this field.
+     
+     The `fields` parameter is variadic so you can add more than one validation constraint.
+     
+     Do note that calling this method a second time will override all previously defined constraints.
+     
+     */
     public func validations<Value>(
         for path: KeyPath<Shape, Value>,
         are fields: FieldValidator<Shape, Value>...
@@ -52,6 +77,18 @@ public struct FormValidation<Shape> {
         return .init(newDict)
     }
 
+    /**
+     Define validations for a partial value field.
+     
+     - parameter path: The field path to validate.
+     - parameter fields: The constraints the validator would be using for this field.
+     
+     The `fields` parameter is variadic so you can add more than one validation constraint.
+     
+     Do note that calling this method a second time will override all previously defined constraints.
+     
+     - remark: The validator will fail immediately with error `FieldError.incomplete` if the recoded value is `.partial`.
+     */
     public func validations<Value>(
         for path: KeyPath<Shape, FieldPartialValue<Value, some Any>>,
         are fields: FieldValidator<Shape, Value>...
@@ -79,6 +116,14 @@ public struct FormValidation<Shape> {
         return .init(newDict)
     }
 
+    /**
+     
+     Called to perform validations over an object
+     
+     - parameter shape: The object to validate against.
+     
+     - returns: The validation result.
+     */
     public func validate(_ shape: Shape) -> Result {
         let errors = validationsDict.compactMap { key, value in
             let fieldErrors = value(shape)
