@@ -124,6 +124,16 @@ public extension FormHandler {
      Handler to add validations to the form.
      
      - parameter handler: A generic `FormValidation` struct that defines the validations for the form.
+     
+     Call this method after form initialization:
+     
+     ```swift
+     let form = FormHandler(initial: .init(...))
+     form.setValidationHandler(FormValidation())
+     ```
+     
+     Even though this method can chain other `FormHandler` methods, any succeeding calls to this method will override
+     the currently stored validations.
      */
     @discardableResult
     func setValidationHandler(_ handler: FormValidation<Shape>?) -> Self {
@@ -138,6 +148,16 @@ public extension FormHandler {
      Handler to listen side-effects when a form field changes..
      
      - parameter handler: A generic `FormObserver` struct that defines which fields would send side-effects.
+     
+     Call this method after form initialization:
+     
+     ```swift
+     let form = FormHandler(initial: .init(...))
+     form.setObserverHandler(FormObserver())
+     ```
+     
+     Even though this method can chain other `FormHandler` methods, any succeeding calls to this method will override
+     the currently stored side-effect listeners.
      */
     @discardableResult
     func setObserverHandler(_ handler: FormObserver<Shape>?) -> Self {
@@ -159,7 +179,6 @@ public extension FormHandler {
      ```
      
      When accessing or writing form data, use this subscript instead of calling `handler.current.field`. Accessing through the subscript guarantees form events like side-effects and validations would run predictably.
-     
      
      */
     subscript<Value>(dynamicMember member: WritableKeyPath<Shape, Value>) -> Value {

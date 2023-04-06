@@ -45,7 +45,6 @@ public struct FormValidation<Shape> {
      The `fields` parameter is variadic so you can add more than one validation constraint.
      
      Do note that calling this method a second time will override all previously defined constraints.
-     
      */
     public func validations<Value>(
         for path: KeyPath<Shape, Value>,
