@@ -22,9 +22,7 @@ let package = Package(
                 ],
                 path: "Sources/makata-user-interface"),
         .target(name: "makataForm",
-                dependencies: [
-                    "makataInteraction"
-                ],
+                dependencies: [],
                 path: "Sources/makata-form"),
         .target(name: "makataInteraction",
                 path: "Sources/makata-interaction"),

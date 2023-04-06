@@ -4,7 +4,6 @@
 // Created 2/3/23
 
 import Foundation
-import makataInteraction
 
 @dynamicMemberLookup
 public class FormHandler<Shape> {

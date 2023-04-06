@@ -79,6 +79,22 @@ public struct FormValidation<Shape> {
         return .init(newDict)
     }
 
+    public func validate(_ shape: Shape) -> Result {
+        let errors = validationsDict.compactMap { key, value in
+            let fieldErrors = value(shape)
+
+            if !fieldErrors.isEmpty {
+                return (key, fieldErrors)
+            } else {
+                return nil
+            }
+        }
+
+        return .init(fields: .init(uniqueKeysWithValues: errors))
+    }
+}
+
+extension FormValidation {
 #if swift(<5.8)
     public func validations<Value>(
         for path: KeyPath<Shape, Value?>,
@@ -137,18 +153,4 @@ public struct FormValidation<Shape> {
         return .init(newDict)
     }
 #endif
-
-    public func validate(_ shape: Shape) -> Result {
-        let errors = validationsDict.compactMap { key, value in
-            let fieldErrors = value(shape)
-
-            if !fieldErrors.isEmpty {
-                return (key, fieldErrors)
-            } else {
-                return nil
-            }
-        }
-
-        return .init(fields: .init(uniqueKeysWithValues: errors))
-    }
 }

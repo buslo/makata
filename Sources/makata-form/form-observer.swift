@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import makataInteraction
 
 public struct FormObserver<Shape> {
     let observationDict: [PartialKeyPath<Shape> : (Any) -> Void]
