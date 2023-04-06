@@ -53,32 +53,6 @@ public struct FormValidation<Shape> {
     }
 
     public func validations<Value>(
-        for path: KeyPath<Shape, Value?>,
-        are fields: FieldValidator<Shape, Value>...
-    ) -> Self {
-        var newDict = validationsDict
-        newDict[path] = { shape in
-            var fieldErrors = [Error]()
-
-            fields.forEach { field in
-                do {
-                    if let value = shape[keyPath: path] {
-                        try field.validate(shape, value)
-                    } else {
-                        fatalError("Tried to validate a field that does not exist or is nil.")
-                    }
-                } catch {
-                    fieldErrors.append(error)
-                }
-            }
-
-            return fieldErrors
-        }
-
-        return .init(newDict)
-    }
-
-    public func validations<Value>(
         for path: KeyPath<Shape, FieldPartialValue<Value, some Any>>,
         are fields: FieldValidator<Shape, Value>...
     ) -> Self {
@@ -93,6 +67,33 @@ public struct FormValidation<Shape> {
                         try field.validate(shape, complete)
                     case let .partial(_, error):
                         throw FieldError.incomplete(error)
+                    }
+                } catch {
+                    fieldErrors.append(error)
+                }
+            }
+
+            return fieldErrors
+        }
+
+        return .init(newDict)
+    }
+
+#if swift(<5.8)
+    public func validations<Value>(
+        for path: KeyPath<Shape, Value?>,
+        are fields: FieldValidator<Shape, Value>...
+    ) -> Self {
+        var newDict = validationsDict
+        newDict[path] = { shape in
+            var fieldErrors = [Error]()
+
+            fields.forEach { field in
+                do {
+                    if let value = shape[keyPath: path] {
+                        try field.validate(shape, value)
+                    } else {
+                        fatalError("Tried to validate a field that does not exist or is nil.")
                     }
                 } catch {
                     fieldErrors.append(error)
@@ -135,6 +136,7 @@ public struct FormValidation<Shape> {
 
         return .init(newDict)
     }
+#endif
 
     public func validate(_ shape: Shape) -> Result {
         let errors = validationsDict.compactMap { key, value in
