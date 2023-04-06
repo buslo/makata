@@ -22,6 +22,7 @@ public struct Binding<Source: AnyObject, Value> {
         initialValue = source[keyPath: path]
     }
 
+#if swift(<5.8) // issue fixed in swift 5.8!
     public init(
         source: Source,
         to path: ReferenceWritableKeyPath<Source, Value?>
@@ -34,6 +35,7 @@ public struct Binding<Source: AnyObject, Value> {
 
         initialValue = source[keyPath: path]
     }
+#endif
 
     public init<Out, T: FieldTransformable>(
         source: Source,
