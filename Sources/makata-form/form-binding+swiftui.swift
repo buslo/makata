@@ -83,37 +83,10 @@ public extension Formable {
 
     func binding<Value, CompleteValue, Transform: FieldTransformable>(
         for field: WritableKeyPath<FormData, FieldPartialValue<CompleteValue, Value>>,
-        transform transform: Transform
+        transform: Transform
     ) -> SwiftUI.Binding<Value> where Transform.Output == CompleteValue, Transform.Value == Value {
         .init(form: self, field: field, transform: transform)
     }
-}
-
-struct TestForm {
-    var date: FieldPartialValue<Date, String>
-}
-
-class TestFormClient: Formable {
-    var formHandler: FormHandler<TestForm> = .init(initial: .init(date: .partial("", nil)))
-    
-    func submitData(form: TestForm) async throws {
-
-    }
-}
-
-struct DateTransformer: FieldTransformable {
-    func decode(from value: Date) throws -> String {
-        fatalError()
-    }
-    
-    func encode(to value: String) throws -> Date {
-        fatalError()
-    }
-}
-
-func testView() -> some View {
-    let client = TestFormClient()
-    return TextField("Enter Text here", text: client.binding(for: \.date, transform: DateTransformer()))
 }
 
 #endif

@@ -27,7 +27,7 @@ public final class Observable<Value> {
 }
 
 public extension Observable {
-    class Subscription: Lifetimeable {
+    final class Subscription: Lifetimeable {
         public static func equal(source: Subscription) -> (Subscription) -> Bool {
             { check in check.id == source.id }
         }

@@ -39,8 +39,20 @@ import Foundation
  For SwiftUI:
  
  ```swift
- // TODO
+ final class YourSwiftUIScreen: View, Formable {
+     let formHandler = FormHandler<YourForm>(initialValue: YourForm(...))
+         .setValidationHandler(FormValidation()
+             .validations(for: \.yourField, are: .validator, .validator2)
+         )
+
+    var body: some View {
+        VStack {
+            TextField("Your Field", binding(for: \.yourField))
+        }
+    }
+ }
  ```
+ 
  */
 public protocol Formable: AnyObject {
     /// The form's shape.
