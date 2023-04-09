@@ -1,12 +1,14 @@
 # makata
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fbuslo%2Fmakata%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/buslo/makata) [![](https://img.shields.io/github/sponsors/buslo)](https://github.com/sponsors/buslo)
+
 Foundations for writing iOS apps in the least amount of time
 
 ## What's in it?
 
-###  **Makata Form** for handling forms
+### **Makata Form** for handling forms
 
-```[swift]
+```swift
 struct TheForm {
     var name: String
     var email: String
@@ -23,14 +25,14 @@ class YourViewModel: Formable {
 
 class YourController {
     let yourViewModel = YourViewModel()
-    
+
     var nameInputFieldState: Lifetimeable?
     var emailInputFieldState: Lifetimeable?
-    
+
     func loadView() {
         nameInputFieldState = nameInputField
             .textChanges(Binding(source: yourViewModel.formHandler, to: \.name))
-        
+
         emailInputFieldState = emailInputField
             .textChanges(Binding(source: yourViewModel.formHandler, to: \.email))
 
@@ -43,12 +45,11 @@ class YourController {
 
 ### **Makata User Interface** for rapidly creating views:
 
-```[swift]
-
+```swift
 class YourController: Controller<YourViewModel> {
     override func loadView() {
         super.loadView()
-        
+
         view
             .addSubview(
                 UIButton(configuration: .pilled().withTitle("Click me!"), primaryAction: clickMeAction())
@@ -68,20 +69,18 @@ class YourController: Controller<YourViewModel> {
                     }
             )
     }
-    
+
     func clickMeAction() -> UIAction {
         .init { _ in
             // your button action
         }
     }
 }
-
 ```
 
 ### **Makata Interaction** for useful utilities
 
-```[swift]
-
+```swift
 enum Routes {
     case success
     case anotherStep
@@ -90,7 +89,7 @@ enum Routes {
 class YourViewModel: Routeable {
     func process() async {
         // do some processing
-        
+
         await updateRoute(to: .success)
     }
 }
@@ -98,7 +97,7 @@ class YourViewModel: Routeable {
 class YourViewController: Controller<YourViewModel> {
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         client.routeHandler { nextRoute in
             switch nextRoute {
             case .success:
@@ -116,7 +115,7 @@ struct ScreenState {
 
 class YourLoadingViewModel: Stateable {
     let stateHandler = StateHandler<ScreenState>(initial: .init(name: ""))
-    
+
     func initialize() {
         Task {
             let result = await someNetworkCall()
@@ -128,11 +127,10 @@ class YourLoadingViewModel: Stateable {
 class YourLoadingViewController: Controller<YourLoadingViewModel> {
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         client.stateHandler { [unowned nameLabel] state in
             nameLabel.text = state.name
         }
     }
 }
-
 ```

@@ -5,27 +5,46 @@
 
 import Foundation
 
+/**
+ A class that provides a generic way of handling form data.
+ 
+ The `FormHandler` class is generic over a `Shape` type, which represents the shape of the form data that it handles.
+ The Shape type is expected to be a `struct`, and each property of the `Shape` type represents a field in the form.
+ */
 @dynamicMemberLookup
 public class FormHandler<Shape> {
+    /**
+     Contains definitions when form validation failed.
+     */
     public enum Errors: Error {
         case invalid(FormValidation<Shape>.Result)
     }
 
+    /**
+     Contains information about the current state of the form.
+     */
     public struct State {
+        /// `true` if the current form is valid.
         public let isValid: Bool
+
+        /// `true` if the `submit` method is called.
         public let isSubmitInvoked: Bool
 
+        /// `true` if actions inside the `submit` action threw an error.
         public var isSubmitFailed: Bool {
             submitErrors != nil
         }
 
+        /// Contains information on why `submit` failed.
         public let submitErrors: Error?
 
+        /// Validaiton result.
         public let validationResult: FormValidation<Shape>.Result
     }
 
     public typealias UpdatesHandler = (Shape, State) async -> Void
 
+    /// The current recorded values of the form.
     public var current: Shape
 
     var submitInvoked: Bool
@@ -37,6 +56,12 @@ public class FormHandler<Shape> {
 
     var observations: FormObserver<Shape>?
 
+    /**
+     Creates a new `FormHandler` instance.
+     
+     - parameter initial: The initial state of the form.
+     - parameter submitInvoked: Override if the form should be created with a submitted state.
+     */
     public init(initial: Shape, submitInvoked: Bool = false) {
         self.current = initial
         self.submitInvoked = submitInvoked
@@ -80,6 +105,12 @@ public class FormHandler<Shape> {
 }
 
 public extension FormHandler {
+    /**
+     Handler to hook form updates onto.
+     
+     - parameter callback: The handler accepting form state changes.
+     
+     */
     @discardableResult
     func callAsFunction(_ callback: @escaping UpdatesHandler) -> Self {
         updateHandler = callback
@@ -89,6 +120,21 @@ public extension FormHandler {
         return self
     }
 
+    /**
+     Handler to add validations to the form.
+     
+     - parameter handler: A generic `FormValidation` struct that defines the validations for the form.
+     
+     Call this method after form initialization:
+     
+     ```swift
+     let form = FormHandler(initial: .init(...))
+     form.setValidationHandler(FormValidation())
+     ```
+     
+     Even though this method can chain other `FormHandler` methods, any succeeding calls to this method will override
+     the currently stored validations.
+     */
     @discardableResult
     func setValidationHandler(_ handler: FormValidation<Shape>?) -> Self {
         validations = handler
@@ -98,6 +144,21 @@ public extension FormHandler {
         return self
     }
 
+    /**
+     Handler to listen side-effects when a form field changes..
+     
+     - parameter handler: A generic `FormObserver` struct that defines which fields would send side-effects.
+     
+     Call this method after form initialization:
+     
+     ```swift
+     let form = FormHandler(initial: .init(...))
+     form.setObserverHandler(FormObserver())
+     ```
+     
+     Even though this method can chain other `FormHandler` methods, any succeeding calls to this method will override
+     the currently stored side-effect listeners.
+     */
     @discardableResult
     func setObserverHandler(_ handler: FormObserver<Shape>?) -> Self {
         observations = handler
@@ -107,6 +168,19 @@ public extension FormHandler {
 }
 
 public extension FormHandler {
+    /**
+     Allows direct read-write access to the form's current recorded state.
+     
+     To use this, just do:
+     
+     ```swift
+     let formHandler = FormHandler()
+     formHandler.field = "Something"
+     ```
+     
+     When accessing or writing form data, use this subscript instead of calling `handler.current.field`. Accessing through the subscript guarantees form events like side-effects and validations would run predictably.
+     
+     */
     subscript<Value>(dynamicMember member: WritableKeyPath<Shape, Value>) -> Value {
         get {
             current[keyPath: member]
