@@ -7,6 +7,40 @@ import Foundation
 
 /**
  Protocol that provides form handling functions to a reference type object.
+ 
+ Use this protocol as follows:
+ 
+ For UIKit:
+ 
+ ```swift
+ class YourViewController: UIViewController, Formable {
+    let formHandler = FormHandler<YourForm>(initialValue: YourForm(...))
+        .setValidationHandler(FormValidation()
+            .validations(for: \.yourField, are: .validator, .validator2)
+        )
+
+    var yourFieldField: Lifetimeable!
+ 
+    override func viewDidLoad() {
+        super.viewDidLoad()
+ 
+        UIButton(configuration: ..., primaryAction: UIAction { _ in Task { try await submit() } })
+ 
+        UITextField()
+            .textChanges(Binding(source: formHandler, to: \.yourField), lifetime: &yourFieldField)
+    }
+ 
+    func submitData(_ form: YourForm) async throws {
+        try await api.submitForSubmission(form)
+    }
+ }
+ ```
+ 
+ For SwiftUI:
+ 
+ ```swift
+ // TODO
+ ```
  */
 public protocol Formable: AnyObject {
     /// The form's shape.
