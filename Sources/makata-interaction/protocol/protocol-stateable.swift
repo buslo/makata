@@ -4,6 +4,8 @@
 // Created 2/3/23
 
 import Foundation
+import SwiftUI
+import Combine
 
 public protocol Stateable: AnyObject {
     associatedtype State
@@ -14,17 +16,17 @@ public protocol Stateable: AnyObject {
 public extension Stateable {
     func updateState(to state: State) async {
         stateHandler.current = state
-        
+
         await stateHandler.provider(state)
     }
 }
 
-public class StateHandler<State> {
+public class StateHandler<State>: ObservableObject {
     public typealias Provider = @MainActor (State) async -> Void
 
     var provider: Provider = { _ in }
 
-    @Observable public var current: State
+    @Published public internal(set) var current: State
 
     public init(initial: State) {
         current = initial
@@ -36,5 +38,21 @@ public class StateHandler<State> {
         Task {
             await callback(current)
         }
+    }
+}
+
+class Client: Stateable, ObservableObject {
+    struct State {
+        let name: String
+    }
+
+    @StateObject var stateHandler = StateHandler<State>(initial: State(name: ""))
+}
+
+struct Screen: View {
+    @ObservedObject var client: Client
+
+    var body: some View {
+        Text(client.stateHandler.current.name)
     }
 }

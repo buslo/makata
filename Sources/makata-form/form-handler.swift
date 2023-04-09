@@ -4,6 +4,8 @@
 // Created 2/3/23
 
 import Foundation
+import SwiftUI
+import Combine
 
 /**
  A class that provides a generic way of handling form data.
@@ -12,7 +14,7 @@ import Foundation
  The Shape type is expected to be a `struct`, and each property of the `Shape` type represents a field in the form.
  */
 @dynamicMemberLookup
-public class FormHandler<Shape> {
+public class FormHandler<Shape>: ObservableObject {
     /**
      Contains definitions when form validation failed.
      */
@@ -45,7 +47,7 @@ public class FormHandler<Shape> {
     public typealias UpdatesHandler = (Shape, State) async -> Void
 
     /// The current recorded values of the form.
-    public var current: Shape
+    @Published public var current: Shape
 
     var submitInvoked: Bool
     var submitErrors: Error?

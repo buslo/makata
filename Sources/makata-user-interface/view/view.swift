@@ -7,6 +7,7 @@ import Foundation
 import makataInteraction
 import SnapKit
 import UIKit
+import Combine
 
 extension UIView: Assignable, Attributable, Withable {}
 
@@ -78,7 +79,7 @@ public extension UIView {
     
     @discardableResult
     func renderSubviews<Value>(
-        from observer: Observable<Value>.Projection,
+        from observer: Published<Value>.Publisher,
         _ lifetime: inout Lifetimeable?,
         @ComponentBuilder _ update: @escaping @MainActor (Value) -> ComponentBuilder.Component
     ) -> Self {

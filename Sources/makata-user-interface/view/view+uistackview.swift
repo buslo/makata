@@ -3,6 +3,7 @@
 // Code Copyright Buslo Collective
 // Created 4/6/23
 
+import Combine
 import Foundation
 import makataInteraction
 import UIKit
@@ -82,7 +83,7 @@ public extension UIStackView {
 
 public extension UIStackView {
     static func renderHorizontal<Value>(
-        from observable: Observable<Value>.Projection,
+        from observable: Published<Value>.Publisher,
         _ lifetime: inout Lifetimeable?,
         spacing: CGFloat = DefaultStackSpacing,
         alignment: UIStackView.Alignment = .leading,
@@ -127,7 +128,7 @@ public extension UIStackView {
     }
 
     static func renderVertical<Value>(
-        from observable: Observable<Value>.Projection,
+        from observable: Published<Value>.Publisher,
         _ lifetime: inout Lifetimeable?,
         spacing: CGFloat = DefaultStackSpacing,
         alignment: UIStackView.Alignment = .leading,
