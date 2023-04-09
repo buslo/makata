@@ -5,10 +5,17 @@
 
 import Foundation
 
+/**
+ Represents errors that a form's validation can throw.
+ */
 public enum FieldError: LocalizedError {
+    /// Field is required.
     case required
+    /// Field is in a wrong format.
     case wrongFormat
+    /// Field's validation has failed.
     case invalid(String)
+    /// If the Field is a ``FieldPartialValue``, represents the field is still incomplete.
     case incomplete(Error?)
 
     public var errorDescription: String? {

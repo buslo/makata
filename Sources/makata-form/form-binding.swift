@@ -237,6 +237,7 @@ public extension Binding {
     #endif
 }
 
+/// A typealias for defining a `ReferenceWritableKeyPath` for a ``FieldPartialValue``.
 public typealias FieldPartialValueKeyPath<Source, Complete, Value> = ReferenceWritableKeyPath<
     Source, FieldPartialValue<Complete, Value>
 >
