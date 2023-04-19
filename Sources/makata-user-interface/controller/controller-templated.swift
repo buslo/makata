@@ -38,7 +38,15 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
     }
 
     override open func loadView() {
-        view = screenTemplate
+        switch screenTemplate {
+        case let pageView as Templates.PageView:
+            addChild(pageView.hostingController)
+            view = screenTemplate
+
+            pageView.hostingController.didMove(toParent: self)
+        default:
+            view = screenTemplate
+        }
 
         updateHeader()
     }

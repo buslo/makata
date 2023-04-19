@@ -1,15 +1,18 @@
-// controller-template-page.swift
 //
-// Code Copyright Buslo Collective
-// Created 2/4/23
+//  File.swift
+//  
+//
+//  Created by Michael Ong on 4/19/23.
+//
 
 import Foundation
 import SnapKit
 import UIKit
+import SwiftUI
 import Combine
 
 public extension Templates {
-    final class Page: UIView, HasHeader {
+    final class PageView: UIView, HasHeader {
         public enum KeyboardInsetBehavior {
             case normal
             case ignore
@@ -18,29 +21,14 @@ public extension Templates {
         weak var headerVisualEffectView: UIVisualEffectView!
         weak var headerBorderView: UIView!
 
+        let hostingController: UIViewController!
+
         public private(set) weak var headerView: (UIView & ViewHeader)?
         public private(set) weak var footerView: UIView?
-
-        public private(set) weak var contentView: UIView!
-        public private(set) weak var contentContainerView: UIScrollView!
 
         public var keyboardInsetBehavior = KeyboardInsetBehavior.ignore {
             didSet {
                 setNeedsLayout()
-            }
-        }
-
-        public lazy var contentViewLayoutGuide: UILayoutGuide = {
-            let layoutGuide = UILayoutGuide()
-            addLayoutGuide(layoutGuide)
-
-            return layoutGuide
-        }()
-
-        public var headerAlwaysBlurry = false {
-            didSet {
-                setNeedsLayout()
-                scrollViewDidScroll(contentContainerView)
             }
         }
 
@@ -57,23 +45,20 @@ public extension Templates {
             }
         }
 
-        public init(
+        public init<Content: View>(
             frame: CGRect,
             header: __owned UIView & ViewHeader,
             footer: __owned UIView? = nil,
-            content: __owned UIView
+            content: __owned UIHostingController<Content>
         ) {
-            super.init(frame: frame)
+            hostingController = content
 
-            if content is UICollectionView {
-                fatalError("Do not use this template. Use the Collection template instead.")
-            }
+            super.init(frame: frame)
 
             headerView = header
             footerView = footer
-            contentView = content
 
-            addSubview(UIScrollView().assign(to: &contentContainerView))
+            addSubview(content.view)
             addSubview(UIVisualEffectView(effect: UIBlurEffect(style: .regular)).assign(to: &headerVisualEffectView))
 
             headerVisualEffectView.contentView
@@ -101,11 +86,6 @@ public extension Templates {
             if let footer {
                 addSubview(footer)
             }
-
-            contentContainerView.delegate = self
-            contentContainerView.contentInsetAdjustmentBehavior = .never
-
-            contentContainerView.addSubview(content)
         }
 
         @available(*, unavailable)
@@ -117,25 +97,10 @@ public extension Templates {
             setupHeaderLayout()
             setupFooterLayout()
             setupContentLayout()
-            
+
             super.layoutSubviews()
         }
-        
-        public override func didMoveToSuperview() {
-            super.didMoveToSuperview()
-            
-            guard superview != nil else {
-                return
-            }
-            
-            layoutIfNeeded()
-            updateConstraintsIfNeeded()
-            
-            // Explicitly set content offset to mitigate bug that
-            // makes the content go under the header.
-            contentContainerView.contentOffset = .init(x: 0, y: -contentContainerView.contentInset.top)
-        }
-        
+
         func setupKeyboardEvents() {
             NotificationCenter.default
                 .publisher(for: UIApplication.keyboardWillShowNotification)
@@ -260,8 +225,6 @@ public extension Templates {
         }
         
         func setupContentLayout() {
-            let bottomInset = keyboardInsets.bottom > 0 ? 0 : safeAreaInsets.bottom
-            
             let headerHeight = headerView!.systemLayoutSizeFitting(
                 .init(
                     width: bounds.width,
@@ -269,7 +232,7 @@ public extension Templates {
                 ),
                 withHorizontalFittingPriority: .required,
                 verticalFittingPriority: .fittingSizeLevel
-            ).height + safeAreaInsets.top
+            ).height
             
             let footerHeight = footerView?.systemLayoutSizeFitting(
                 .init(
@@ -278,56 +241,15 @@ public extension Templates {
                 ),
                 withHorizontalFittingPriority: .required,
                 verticalFittingPriority: .fittingSizeLevel
-            ).height ?? 0 + bottomInset
+            ).height ?? 0
             
-            if let contentView {
-                let contentSize = contentView.systemLayoutSizeFitting(
-                    .init(width: bounds.width, height: UIView.layoutFittingCompressedSize.height),
-                    withHorizontalFittingPriority: .required,
-                    verticalFittingPriority: .fittingSizeLevel
-                )
-
-                let contentHeight = max(
-                    bounds.height - (headerHeight + footerHeight + 1 + keyboardInsets.bottom),
-                    contentSize.height
-                )
-
-                let finalContentSize = CGSize(width: bounds.width, height: contentHeight)
-
-                contentView.frame = .init(origin: .zero, size: finalContentSize)
-                contentContainerView.contentSize = finalContentSize
-            }
-
-            contentContainerView.frame = bounds.inset(by: keyboardInsets)
-            contentContainerView.contentInset = .init(
-                top: ceil(headerHeight),
-                left: 0,
-                bottom: ceil(footerHeight),
-                right: 0
-            )
-            contentContainerView.scrollIndicatorInsets = .init(
-                top: ceil(headerHeight - safeAreaInsets.top),
-                left: 0,
-                bottom: ceil(footerHeight - bottomInset),
-                right: 0
-            )
+            hostingController.additionalSafeAreaInsets = .init(top: headerHeight, left: 0, bottom: footerHeight, right: 0)
+            hostingController.view.frame = bounds
         }
     }
 }
 
-extension Templates.Page: UIScrollViewDelegate {
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let headerHeight = safeAreaInsets.top + headerView!.bounds.height
-        
-        if headerAlwaysBlurry {
-            headerVisualEffectView.isHidden = false
-        } else {
-            headerVisualEffectView.isHidden = (headerHeight + scrollView.contentOffset.y) <= 0
-        }
-    }
-}
-
-extension Templates.Page {
+extension Templates.PageView {
     @discardableResult
     public func keyboardInsetBehavior(_ behavior: KeyboardInsetBehavior) -> Self {
         self.keyboardInsetBehavior = behavior
