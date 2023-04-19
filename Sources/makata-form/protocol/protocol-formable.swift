@@ -110,9 +110,13 @@ public extension Formable {
                         try await submitData(form: shape)
                     }
                     
-                    onSuccess()
+                    await MainActor.run {
+                        onSuccess()
+                    }
                 } catch {
-                    onFailure(error)
+                    await MainActor.run {
+                        onFailure(error)
+                    }
                 }
             }
         }

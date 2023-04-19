@@ -48,7 +48,7 @@ public class FormHandler<Shape>: ObservableObject {
 
     /// The current recorded values of the form.
     @Published public internal(set) var current: Shape
-
+    /// The current recoded validation state of the form
     @Published public internal(set) var currentState: State?
 
     var submitInvoked: Bool
