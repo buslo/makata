@@ -47,7 +47,9 @@ public class FormHandler<Shape>: ObservableObject {
     public typealias UpdatesHandler = (Shape, State) async -> Void
 
     /// The current recorded values of the form.
-    @Published public var current: Shape
+    @Published public internal(set) var current: Shape
+
+    @Published public internal(set) var currentState: State?
 
     var submitInvoked: Bool
     var submitErrors: Error?
@@ -89,18 +91,19 @@ public class FormHandler<Shape>: ObservableObject {
         }
     }
 
-    @discardableResult
+    @MainActor @discardableResult
     func pushUpdates() async -> FormValidation<Shape>.Result {
         let result = validations?.validate(current) ?? .noErrors
-        await updateHandler(
-            current,
-            .init(
-                isValid: result.fields.isEmpty,
-                isSubmitInvoked: submitInvoked,
-                submitErrors: submitErrors,
-                validationResult: result
-            )
+        let newState = State(
+            isValid: result.fields.isEmpty,
+            isSubmitInvoked: submitInvoked,
+            submitErrors: submitErrors,
+            validationResult: result
         )
+
+        currentState = newState
+
+        await updateHandler(current, newState)
 
         return result
     }

@@ -15,9 +15,9 @@ public extension SwiftUI.Binding {
         field: WritableKeyPath<FormSource.FormData, Value>
     ) {
         self.init {
-            return form.formHandler.current[keyPath: field]
+            return form.formHandler[dynamicMember: field]
         } set: { value in
-            form.formHandler.current[keyPath: field] = value
+            form.formHandler[dynamicMember: field] = value
         }
     }
 
@@ -28,13 +28,13 @@ public extension SwiftUI.Binding {
     ) where Transform.Value == Value {
         self.init {
             do {
-                return try transform.decode(from: form.formHandler.current[keyPath: field])
+                return try transform.decode(from: form.formHandler[dynamicMember: field])
             } catch {
                 fatalError("SwiftUI.Binding: Unhandled failure in setting value to text field.\nIf you intend to catch this error, change your target type to be boxed in a `FieldPartialValue`.")
             }
         } set: { value in
             do {
-                form.formHandler.current[keyPath: field] = try transform.encode(to: value)
+                form.formHandler[dynamicMember: field] = try transform.encode(to: value)
             } catch {
                 fatalError("SwiftUI.Binding: Unhandled failure in setting value to text field.\nIf you intend to catch this error, change your target type to be boxed in a `FieldPartialValue`.")
             }
@@ -48,7 +48,7 @@ public extension SwiftUI.Binding {
     ) where Transform.Output == CompleteValue, Transform.Value == Value {
         self.init {
             do {
-                switch form.formHandler.current[keyPath: field] {
+                switch form.formHandler[dynamicMember: field] {
                 case .complete(let complete):
                     return try transform.decode(from: complete)
                 case .partial(let incomplete, _):
@@ -59,9 +59,9 @@ public extension SwiftUI.Binding {
             }
         } set: { value in
             do {
-                form.formHandler.current[keyPath: field] = .complete(try transform.encode(to: value))
+                form.formHandler[dynamicMember: field] = .complete(try transform.encode(to: value))
             } catch {
-                form.formHandler.current[keyPath: field] = .partial(value, error)
+                form.formHandler[dynamicMember: field] = .partial(value, error)
             }
         }
     }
