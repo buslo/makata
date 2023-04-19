@@ -17,7 +17,7 @@ extension Published.Publisher {
         }
     }
 
-    public func bind(to loadable: some Loadable) -> Lifetimeable {
+    public func bind<Target: Loadable & AnyObject>(to loadable: Target) -> Lifetimeable {
         subscribe { [weak loadable] _ in
             guard let loadable else {
                 return

@@ -14,9 +14,9 @@ public extension SwiftUI.Binding {
         form: FormSource,
         field: WritableKeyPath<FormSource.FormData, Value>
     ) {
-        self.init { [unowned form] in
+        self.init {
             return form.formHandler.current[keyPath: field]
-        } set: { [unowned form] value in
+        } set: { value in
             form.formHandler.current[keyPath: field] = value
         }
     }
@@ -26,13 +26,13 @@ public extension SwiftUI.Binding {
         field: WritableKeyPath<FormSource.FormData, Transform.Output>,
         transform: Transform
     ) where Transform.Value == Value {
-        self.init { [unowned form] in
+        self.init {
             do {
                 return try transform.decode(from: form.formHandler.current[keyPath: field])
             } catch {
                 fatalError("SwiftUI.Binding: Unhandled failure in setting value to text field.\nIf you intend to catch this error, change your target type to be boxed in a `FieldPartialValue`.")
             }
-        } set: { [unowned form] value in
+        } set: { value in
             do {
                 form.formHandler.current[keyPath: field] = try transform.encode(to: value)
             } catch {
@@ -68,20 +68,45 @@ public extension SwiftUI.Binding {
 }
 
 public extension Formable {
+    @available(*, deprecated: 0.0.6, renamed: "formBinding(for:)")
     func binding<Value>(
+        for field: WritableKeyPath<FormData, Value>
+    ) -> SwiftUI.Binding<Value> {
+        formBinding(for: field)
+    }
+
+    @available(*, deprecated: 0.0.6, renamed: "formBinding(for:transform:)")
+    func binding<Value, Transform: FieldTransformable>(
+        for field: WritableKeyPath<FormData, Transform.Output>,
+        transform: Transform
+    ) -> SwiftUI.Binding<Value> where Transform.Value == Value {
+        formBinding(for: field, transform: transform)
+    }
+
+    @available(*, deprecated: 0.0.6, renamed: "formBinding(for:transform:)")
+    func binding<Value, CompleteValue, Transform: FieldTransformable>(
+        for field: WritableKeyPath<FormData, FieldPartialValue<CompleteValue, Value>>,
+        transform: Transform
+    ) -> SwiftUI.Binding<Value> where Transform.Output == CompleteValue, Transform.Value == Value {
+        formBinding(for: field, transform: transform)
+    }
+}
+
+public extension Formable {
+    func formBinding<Value>(
         for field: WritableKeyPath<FormData, Value>
     ) -> SwiftUI.Binding<Value> {
         .init(form: self, field: field)
     }
 
-    func binding<Value, Transform: FieldTransformable>(
+    func formBinding<Value, Transform: FieldTransformable>(
         for field: WritableKeyPath<FormData, Transform.Output>,
         transform: Transform
     ) -> SwiftUI.Binding<Value> where Transform.Value == Value {
         .init(form: self, field: field, transform: transform)
     }
 
-    func binding<Value, CompleteValue, Transform: FieldTransformable>(
+    func formBinding<Value, CompleteValue, Transform: FieldTransformable>(
         for field: WritableKeyPath<FormData, FieldPartialValue<CompleteValue, Value>>,
         transform: Transform
     ) -> SwiftUI.Binding<Value> where Transform.Output == CompleteValue, Transform.Value == Value {
