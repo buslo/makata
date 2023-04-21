@@ -26,6 +26,8 @@ public class FormHandler<Shape>: ObservableObject {
      Contains information about the current state of the form.
      */
     public struct State {
+        public let isModified: Bool
+        
         /// `true` if the current form is valid.
         public let isValid: Bool
 
@@ -51,13 +53,14 @@ public class FormHandler<Shape>: ObservableObject {
     /// The current recoded validation state of the form
     @Published public internal(set) var currentState: State?
 
+    let isModified: (Shape) -> Bool
+    
     var submitInvoked: Bool
     var submitErrors: Error?
 
     var updateHandler: UpdatesHandler = { _, _ async in }
 
     var validations: FormValidation<Shape>?
-
     var observations: FormObserver<Shape>?
 
     /**
@@ -69,6 +72,13 @@ public class FormHandler<Shape>: ObservableObject {
     public init(initial: Shape, submitInvoked: Bool = false) {
         self.current = initial
         self.submitInvoked = submitInvoked
+        self.isModified = { _ in false }
+    }
+    
+    public init(initial: Shape, submitInvoked: Bool = false) where Shape: Equatable {
+        self.current = initial
+        self.submitInvoked = submitInvoked
+        self.isModified = { current in current != initial }
     }
 
     func submit(_ callback: @escaping (Shape) async throws -> Void) async throws {
@@ -95,6 +105,7 @@ public class FormHandler<Shape>: ObservableObject {
     func pushUpdates() async -> FormValidation<Shape>.Result {
         let result = validations?.validate(current) ?? .noErrors
         let newState = State(
+            isModified: isModified(current),
             isValid: result.fields.isEmpty,
             isSubmitInvoked: submitInvoked,
             submitErrors: submitErrors,
