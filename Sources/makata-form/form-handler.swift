@@ -26,6 +26,8 @@ public class FormHandler<Shape>: ObservableObject {
      Contains information about the current state of the form.
      */
     public struct State {
+        /// `true` if the form is modified.
+        /// - remark: This will always return `false` if the form's `Shape` does not conforms to `Equatable`.
         public let isModified: Bool
         
         /// `true` if the current form is valid.
