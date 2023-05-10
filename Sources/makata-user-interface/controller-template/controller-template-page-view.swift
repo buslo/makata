@@ -32,6 +32,12 @@ public extension Templates {
             }
         }
 
+        public var showHeaderBackground = true {
+            didSet {
+                setNeedsLayout()
+            }
+        }
+        
         public var showHairlineBorder = true {
             didSet {
                 setNeedsLayout()
@@ -190,7 +196,8 @@ public extension Templates {
                 )
             )
 
-            headerBorderView.isHidden = !showHairlineBorder
+            headerBorderView.isHidden = !showHairlineBorder || !showHeaderBackground
+            headerVisualEffectView.isHidden = !showHeaderBackground
 
             headerVisualEffectView.frame = .init(
                 origin: .init(
@@ -244,7 +251,7 @@ public extension Templates {
             ).height ?? 0
             
             hostingController.additionalSafeAreaInsets = .init(top: headerHeight, left: 0, bottom: footerHeight, right: 0)
-            hostingController.view.frame = bounds
+            hostingController.view.frame = bounds.inset(by: keyboardInsets)
         }
     }
 }

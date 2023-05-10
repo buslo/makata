@@ -227,6 +227,9 @@ public extension Templates {
 
             headerBorderView.isHidden = !showHairlineBorder
 
+            headerVisualEffectView.backgroundColor = .clear
+            headerVisualEffectView.contentView.backgroundColor = .clear
+
             headerVisualEffectView.frame = .init(
                 origin: .init(
                     x: 0,
