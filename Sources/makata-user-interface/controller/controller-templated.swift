@@ -22,6 +22,7 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
     open var backAction: UIAction {
         .init { [unowned self] _ in
             guard let navigationController else {
+                dismiss(animated: true)
                 return
             }
 
