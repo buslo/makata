@@ -15,14 +15,7 @@ public protocol Loadable: Stateable where State == LoadableDataState<LoadableDat
 
 public extension Loadable {
     func invalidate() async {
-        let previousData: LoadableData?
-
-        if case let .success(pd) = stateHandler.current {
-            previousData = pd
-        } else {
-            previousData = nil
-        }
-
+        let previousData = stateHandler.current.value
         await updateState(to: .pending(previousData))
 
         if Task.isCancelled {
@@ -31,7 +24,6 @@ public extension Loadable {
 
         do {
             let newData = try await loadData(previousData: previousData)
-
             await updateState(to: .success(newData))
         } catch {
             await updateState(to: .failure(previousData, error))
@@ -43,4 +35,24 @@ public enum LoadableDataState<Data> {
     case success(Data)
     case pending(Data?)
     case failure(Data?, Error)
+}
+
+public extension LoadableDataState {
+    var value: Data? {
+        switch self {
+        case .success(let data):
+            return data
+        case .pending(let data), .failure(let data, _):
+            return data
+        }
+    }
+    
+    var error: Error? {
+        switch self {
+        case .failure(_, let error):
+            return error
+        default:
+            return nil
+        }
+    }
 }
