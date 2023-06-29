@@ -10,4 +10,12 @@ public enum Templates {}
 
 public protocol HasHeader: AnyObject {
     var headerView: (UIView & ViewHeader)? { get }
+    
+    func handleLayout()
+}
+
+public extension HasHeader {
+    func handleLayout() {
+        
+    }
 }

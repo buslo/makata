@@ -75,6 +75,7 @@ public extension Templates {
 
             if let header {
                 setupHeader(content: header)
+                updateContentInsets(frame: frame)
             }
         }
 
@@ -113,13 +114,17 @@ public extension Templates {
                 return
             }
             
-            updateContentInsets()
+            updateContentInsets(frame: bounds)
         }
         
         public override func layoutSubviews() {
             super.layoutSubviews()
             
-            updateContentInsets()
+            updateContentInsets(frame: bounds)
+        }
+        
+        public func handleLayout() {
+            updateContentInsets(frame: bounds)
         }
 
         public func setCollectionDelegate<D: CollectionDelegate>(
@@ -154,11 +159,21 @@ public extension Templates {
             .init()
         }
         
-        func updateContentInsets() {
+        func updateContentInsets(frame: CGRect) {
             var inset = collectionView.contentInset
             
             if let headerViewContainer {
-                inset.top = headerViewContainer.bounds.height - safeAreaInsets.top
+                let bounds = headerViewContainer
+                    .systemLayoutSizeFitting(
+                        .init(
+                            width: frame.width,
+                            height: UIView.layoutFittingCompressedSize.height
+                        ),
+                        withHorizontalFittingPriority: .required,
+                        verticalFittingPriority: .fittingSizeLevel
+                    )
+                
+                inset.top = bounds.height - safeAreaInsets.top
             } else {
                 inset.top = 0
             }

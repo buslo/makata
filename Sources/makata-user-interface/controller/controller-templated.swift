@@ -52,6 +52,14 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
         updateHeader()
     }
 
+    open override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        
+        if let template = screenTemplate as? HasHeader {
+            template.handleLayout()
+        }
+    }
+    
     private func updateHeader() {
         if let template = screenTemplate as? HasHeader {
             template.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
