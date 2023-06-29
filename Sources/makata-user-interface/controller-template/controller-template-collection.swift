@@ -31,7 +31,7 @@ public extension Templates {
 
         public class DataSource: UICollectionViewDiffableDataSource<S, E> {}
 
-        public let dataSource: DataSource
+        private(set) weak var headerViewContainer: Header?
 
         public private(set) weak var headerView: (UIView & ViewHeader)?
 
@@ -39,15 +39,12 @@ public extension Templates {
 
         public var showHairlineBorder = true {
             didSet {
-                let invalidationContext = UICollectionViewLayoutInvalidationContext()
-                invalidationContext.invalidateSupplementaryElements(
-                    ofKind: CollectionHeaderElementType,
-                    at: [.init(row: 0, section: 0)]
-                )
-
-                collectionView.collectionViewLayout.invalidateLayout(with: invalidationContext)
+                headerViewContainer?
+                    .displayUpdate(showHairlineBorder)
             }
         }
+
+        public let dataSource: DataSource
 
         let delegate = DelegateProxy<E>()
 
@@ -60,87 +57,25 @@ public extension Templates {
         ) {
             headerView = header
 
-            let headerRegistration = Header.Registration
-            let footerRegistration = Footer.Registration
+            let collectionView = Self.setupCollectionView(delegate: delegate)
+            dataSource = Self.setupDataSource(source(collectionView), footer: footer)
 
-            let collectionView = UICollectionView(frame: .zero, collectionViewLayout: .init())
-
-            collectionView.contentInset = .init(top: 0, left: 0, bottom: 8, right: 0)
-            collectionView.alwaysBounceVertical = false
-            collectionView.delegate = delegate
-            collectionView.backgroundColor = .systemBackground
-
-            let source = source(collectionView)
-            dataSource = source
-
+            let collectionLayout = Self.setupLayout(layout(dataSource), footer: footer)
+            collectionView.setCollectionViewLayout(collectionLayout, animated: false)
+            
             super.init(frame: frame)
 
-            let initialSupplementaryProvider = source.supplementaryViewProvider
-
-            source.supplementaryViewProvider = { [unowned self] cv, ek, ip in
-                switch ek {
-                case CollectionHeaderElementType:
-                    return cv
-                        .dequeueConfiguredReusableSupplementary(using: headerRegistration, for: ip)
-                        .setContainingView(header!)
-                        .attribute(on: \.border!.isHidden, !showHairlineBorder)
-                case CollectionFooterElementType:
-                    return cv
-                        .dequeueConfiguredReusableSupplementary(using: footerRegistration, for: ip)
-                        .setContainingView(footer!)
-                default:
-                    if let initialSupplementaryProvider {
-                        return initialSupplementaryProvider(cv, ek, ip)
-                    } else {
-                        fatalError("Called for a supplementary view, but no provider.")
-                    }
-                }
-            }
-
+            self.collectionView = collectionView
+            
             addSubview(collectionView
                 .defineConstraints { make in
                     make.edges
                         .equalToSuperview()
                 })
 
-            let collectionLayout = layout(source)
-            let configuration = collectionLayout.configuration
-
-            if header != nil {
-                let headerSupplementaryItem = NSCollectionLayoutBoundarySupplementaryItem(
-                    layoutSize: .init(
-                        widthDimension: .fractionalWidth(1),
-                        heightDimension: .estimated(120)
-                    ),
-                    elementKind: CollectionHeaderElementType,
-                    alignment: .top
-                )
-
-                headerSupplementaryItem.pinToVisibleBounds = true
-
-                configuration.boundarySupplementaryItems.append(headerSupplementaryItem)
+            if let header {
+                setupHeader(content: header)
             }
-
-            if footer != nil {
-                let footerSupplementaryItem = NSCollectionLayoutBoundarySupplementaryItem(
-                    layoutSize: .init(
-                        widthDimension: .fractionalWidth(1),
-                        heightDimension: .estimated(30)
-                    ),
-                    elementKind: CollectionFooterElementType,
-                    alignment: .bottom
-                )
-
-                footerSupplementaryItem.pinToVisibleBounds = true
-
-                configuration.boundarySupplementaryItems.append(footerSupplementaryItem)
-            }
-
-            collectionLayout.configuration = configuration
-
-            collectionView.setCollectionViewLayout(collectionLayout, animated: false)
-
-            self.collectionView = collectionView
         }
 
         public convenience init(
@@ -169,6 +104,22 @@ public extension Templates {
         @available(*, unavailable)
         public required init?(coder _: NSCoder) {
             fatalError()
+        }
+        
+        public override func didMoveToSuperview() {
+            super.didMoveToSuperview()
+            
+            guard superview != nil else {
+                return
+            }
+            
+            updateContentInsets()
+        }
+        
+        public override func layoutSubviews() {
+            super.layoutSubviews()
+            
+            updateContentInsets()
         }
 
         public func setCollectionDelegate<D: CollectionDelegate>(
@@ -202,6 +153,94 @@ public extension Templates {
         public func createSnapsot() -> NSDiffableDataSourceSnapshot<S, E> {
             .init()
         }
+        
+        func updateContentInsets() {
+            var inset = collectionView.contentInset
+            
+            if let headerViewContainer {
+                inset.top = headerViewContainer.bounds.height - safeAreaInsets.top
+            } else {
+                inset.top = 0
+            }
+            
+            collectionView.contentInset = inset
+        }
+        
+        func setupHeader(content: __owned(UIView & ViewHeader)) {
+            addSubview(
+                Header()
+                    .setContainingView(content)
+                    .displayUpdate(true)
+                    .assign(to: &headerViewContainer)
+                    .defineConstraints { make in
+                        make.horizontalEdges
+                            .top
+                            .equalToSuperview()
+                    }
+            )
+        }
+        
+        static func setupCollectionView(delegate: DelegateProxy<E>) -> UICollectionView {
+            let collectionView = UICollectionView(frame: .zero, collectionViewLayout: .init())
+
+            collectionView.contentInset = .init(top: 0, left: 0, bottom: 8, right: 0)
+            collectionView.alwaysBounceVertical = false
+            collectionView.delegate = delegate
+            collectionView.backgroundColor = .systemBackground
+
+            return collectionView
+        }
+        
+        static func setupDataSource(
+            _ dataSource: DataSource,
+            footer: UIView?
+        ) -> DataSource {
+            let footerRegistration = Footer.Registration
+            let initialSupplementaryProvider = dataSource.supplementaryViewProvider
+
+            dataSource.supplementaryViewProvider = { cv, ek, ip in
+                switch ek {
+                case CollectionFooterElementType:
+                    return cv
+                        .dequeueConfiguredReusableSupplementary(using: footerRegistration, for: ip)
+                        .setContainingView(footer!)
+                default:
+                    if let initialSupplementaryProvider {
+                        return initialSupplementaryProvider(cv, ek, ip)
+                    } else {
+                        fatalError("Called for a supplementary view, but no provider.")
+                    }
+                }
+            }
+
+            return dataSource
+        }
+        
+        static func setupLayout(
+            _ collectionLayout: UICollectionViewCompositionalLayout,
+            footer: UIView?
+        ) -> UICollectionViewCompositionalLayout {
+            let configuration = collectionLayout.configuration
+
+            if footer != nil {
+                let footerSupplementaryItem = NSCollectionLayoutBoundarySupplementaryItem(
+                    layoutSize: .init(
+                        widthDimension: .fractionalWidth(1),
+                        heightDimension: .estimated(30)
+                    ),
+                    elementKind: CollectionFooterElementType,
+                    alignment: .bottom
+                )
+
+                footerSupplementaryItem.pinToVisibleBounds = true
+
+                configuration.boundarySupplementaryItems.append(footerSupplementaryItem)
+            }
+
+            collectionLayout.configuration = configuration
+
+            return collectionLayout
+        }
     }
 }
 
@@ -221,14 +260,7 @@ extension Templates.Collection {
         }
     }
 
-    class Header: UICollectionReusableView {
-        static var Registration: UICollectionView.SupplementaryRegistration<Header> {
-            .init(elementKind: CollectionHeaderElementType) { supplementaryView, _, _ in
-                supplementaryView.subviews.forEach { $0.removeFromSuperview() }
-                supplementaryView.layer.zPosition = 1000
-            }
-        }
-
+    class Header: UIView{
         weak var border: UIView!
         weak var visualEffect: UIVisualEffectView!
 
@@ -249,6 +281,7 @@ extension Templates.Collection {
             super.traitCollectionDidChange(previousTraitCollection)
         }
 
+        @discardableResult
         func setContainingView(_ content: UIView) -> Self {
             addSubview(
                 UIVisualEffectView(effect: UIBlurEffect(style: .regular))
@@ -293,12 +326,15 @@ extension Templates.Collection {
             return self
         }
 
-        func displayUpdate(_ showBorder: Bool) {
+        @discardableResult
+        func displayUpdate(_ showBorder: Bool) -> Self {
             layer.shadowOffset = .init(width: 0, height: 1 / UIScreen.main.scale)
             layer.shadowColor = UIColor.black.cgColor
 
             border.isHidden = !showBorder
             visualEffect.isHidden = !showBorder
+            
+            return self
         }
     }
 
@@ -361,17 +397,17 @@ extension Templates.Collection {
 }
 
 extension Templates.Collection {
-    class DelegateProxy<E: Hashable>: NSObject, UICollectionViewDelegate {
-        typealias DataSource<Section: Hashable> = UICollectionViewDiffableDataSource<Section, E>
+    class DelegateProxy<_E: Hashable>: NSObject, UICollectionViewDelegate {
+        typealias DataSource<Section: Hashable> = UICollectionViewDiffableDataSource<Section, _E>
 
         var itemSelected: (IndexPath) -> Void = { _ in }
 
         var contentRectChanged: (Templates.CollectionContentRect) -> Void = { _ in }
-
+        
         func setupDelegate<D: CollectionDelegate>(
             delegate: D,
             dataSource: DataSource<some Hashable>
-        ) where E == D.DelegateItemType {
+        ) where _E == D.DelegateItemType {
             itemSelected = { [unowned delegate, unowned dataSource] ip in
                 Task(priority: .high) { @MainActor [unowned delegate, unowned dataSource] () in
                     await delegate.collectionItemSelected(at: ip, dataSource.itemIdentifier(for: ip)!)
@@ -390,14 +426,10 @@ extension Templates.Collection {
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
             let ypos = scrollView.contentOffset.y + scrollView.safeAreaInsets.top
 
-            if let collectionView = scrollView as? UICollectionView {
-                for view in collectionView.visibleSupplementaryViews(ofKind: CollectionHeaderElementType) {
-                    guard let header = view as? Header else {
-                        continue
-                    }
-
-                    header.displayUpdate(ypos >= 1)
-                }
+            if let collectionView = scrollView.superview as? Templates.Collection<S, E> {
+                collectionView
+                    .headerViewContainer?
+                    .displayUpdate(ypos >= -collectionView.safeAreaInsets.top)
             }
 
             contentRectChanged(
