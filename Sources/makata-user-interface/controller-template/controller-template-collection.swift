@@ -151,8 +151,8 @@ public extension Templates {
         func updateContentInsets(frame: CGRect) {
             var inset = collectionView.contentInset
             
-            if let headerViewContainer {
-                let bounds = headerViewContainer
+            if let headerView {
+                let bounds = headerView
                     .systemLayoutSizeFitting(
                         .init(
                             width: frame.width,
@@ -162,7 +162,7 @@ public extension Templates {
                         verticalFittingPriority: .fittingSizeLevel
                     )
                 
-                inset.top = bounds.height - safeAreaInsets.top
+                inset.top = bounds.height
             } else {
                 inset.top = 0
             }

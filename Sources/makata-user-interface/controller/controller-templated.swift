@@ -59,17 +59,7 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
             template.handleLayout()
         }
     }
-    
-    open override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        transitionCoordinator?.animate { [unowned self] context in
-            if let template = screenTemplate as? HasHeader {
-                template.handleLayout()
-            }
-        }
-    }
-  
+
 //
 //    open override func viewIsAppearing(_ animated: Bool) {
 //        if let template = screenTemplate as? HasHeader {
