@@ -75,7 +75,6 @@ public extension Templates {
 
             if let header {
                 setupHeader(content: header)
-                updateContentInsets(frame: frame)
             }
         }
 
@@ -105,16 +104,6 @@ public extension Templates {
         @available(*, unavailable)
         public required init?(coder _: NSCoder) {
             fatalError()
-        }
-        
-        public override func didMoveToSuperview() {
-            super.didMoveToSuperview()
-            
-            guard superview != nil else {
-                return
-            }
-            
-            updateContentInsets(frame: bounds)
         }
         
         public override func layoutSubviews() {
