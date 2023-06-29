@@ -300,9 +300,9 @@ extension Templates.Collection {
 
             addSubview(
                 content
-                    .defineConstraints { make in
+                    .defineConstraints { [unowned self] make in
                         make.edges
-                            .equalToSuperview()
+                            .equalTo(safeAreaLayoutGuide)
                     }
             )
 
