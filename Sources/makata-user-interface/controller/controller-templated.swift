@@ -51,7 +51,7 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
 
         updateHeader()
     }
-
+    
     open override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         
@@ -60,6 +60,25 @@ open class ControllerTemplated<Template: UIView, Hook>: Controller<Hook> {
         }
     }
     
+    open override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        transitionCoordinator?.animate { [unowned self] context in
+            if let template = screenTemplate as? HasHeader {
+                template.handleLayout()
+            }
+        }
+    }
+  
+//
+//    open override func viewIsAppearing(_ animated: Bool) {
+//        if let template = screenTemplate as? HasHeader {
+//            template.handleLayout()
+//        }
+//
+//        super.viewIsAppearing(animated)
+//    }
+//
     private func updateHeader() {
         if let template = screenTemplate as? HasHeader {
             template.headerView?.setupHeaderAppearance(title: title ?? "", backAction: backAction)
