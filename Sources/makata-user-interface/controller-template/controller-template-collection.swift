@@ -431,7 +431,7 @@ extension Templates.Collection {
             let ypos = scrollView.contentOffset.y + scrollView.safeAreaInsets.top
 
             if let collectionView = scrollView.superview as? Templates.Collection<S, E> {
-                if !collectionView.showHairlineBorder {
+                if collectionView.showHairlineBorder {
                     collectionView
                         .headerViewContainer?
                         .displayUpdate(ypos >= -collectionView.safeAreaInsets.top)
