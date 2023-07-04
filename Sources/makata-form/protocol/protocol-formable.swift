@@ -104,7 +104,7 @@ public extension Formable where Self: AnyObject {
 public extension Formable {
     func defineSubmit(
         onInvoked: @escaping () -> Void,
-        onSuccess: (() -> Void)?,
+        onSuccess: (() -> Void)? = nil,
         onFailure: @escaping (Error) -> Void
     ) -> () -> Void {
         return {
