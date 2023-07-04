@@ -102,6 +102,34 @@ public extension Formable where Self: AnyObject {
 }
 
 public extension Formable {
+    func defineSubmit(
+        onInvoked: @escaping () -> Void,
+        onSuccess: (() -> Void)?,
+        onFailure: @escaping (Error) -> Void
+    ) -> () -> Void {
+        return {
+            onInvoked()
+            
+            Task {
+                do {
+                    try await formHandler.submit { shape in
+                        try await submitData(form: shape)
+                    }
+                    
+                    if let onSuccess {
+                        await MainActor.run {
+                            onSuccess()
+                        }
+                    }
+                } catch {
+                    await MainActor.run {
+                        onFailure(error)
+                    }
+                }
+            }
+        }
+    }
+    
     func defineSubmit(onSuccess: @escaping () -> Void, onFailure: @escaping (Error) -> Void) -> () -> Void {
         return {
             Task {
