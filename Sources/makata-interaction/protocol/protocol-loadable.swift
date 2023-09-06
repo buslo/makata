@@ -18,14 +18,19 @@ public extension Loadable {
         let previousData = stateHandler.current.value
         await updateState(to: .pending(previousData))
 
-        if Task.isCancelled {
-            return
-        }
-
         do {
             let newData = try await loadData(previousData: previousData)
+
+            if Task.isCancelled {
+                return
+            }
+
             await updateState(to: .success(newData))
         } catch {
+            if Task.isCancelled {
+                return
+            }
+
             await updateState(to: .failure(previousData, error))
         }
     }
