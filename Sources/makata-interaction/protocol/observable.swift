@@ -29,3 +29,17 @@ extension Published.Publisher {
         }
     }
 }
+
+extension Publisher where Failure == Never {
+    public func bind<Target: Loadable & AnyObject>(to loadable: Target) -> Lifetimeable {
+        sink { [weak loadable] value in
+            guard let loadable else {
+                return
+            }
+            
+            Task {
+                await loadable.invalidate()
+            }
+        }
+    }
+}
