@@ -78,9 +78,9 @@ public extension Stateable {
      - Parameter state: The new state to apply.
      */
     func updateState(to state: State) async {
-        stateHandler.current = state
-
         await stateHandler.provider(state)
+        
+        stateHandler.current = state
     }
 }
 
@@ -91,7 +91,7 @@ public extension Stateable {
  
  - Remark: Do not define this object in your classes directly. Instead, conform to ``Stateable``.
  */
-public class StateHandler<State>: ObservableObject {
+public final class StateHandler<State>: ObservableObject, Sendable {
     public typealias Provider = @MainActor (State) async -> Void
 
     var provider: Provider = { _ in }
