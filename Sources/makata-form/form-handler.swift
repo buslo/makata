@@ -55,7 +55,7 @@ public class FormHandler<Shape>: ObservableObject {
     /// The current recoded validation state of the form
     @Published public internal(set) var currentState: State?
 
-    let isModified: (Shape) -> Bool
+    var isModified: (Shape) -> Bool
     
     var submitInvoked: Bool
     var submitErrors: Error?
@@ -123,6 +123,10 @@ public class FormHandler<Shape>: ObservableObject {
 }
 
 public extension FormHandler {
+    func setInitialValue(_ newShape: Shape) where Shape: Equatable {
+        isModified = { current in current != newShape }
+    }
+    
     /**
      Handler to hook form updates onto.
      
